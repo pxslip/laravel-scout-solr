@@ -1,0 +1,16 @@
+{
+    "name": "pxslip/laravel-scout-solr-driver",
+    "description": "A driver for the Laravel Scout search tools, using Apache Solr for the backend",
+    "type": "library",
+    "require": {
+        "laravel/scout": "^5.0",
+        "illuminate/support": "~5.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Will Kruse",
+            "email": "wskruse@gmail.com"
+        }
+    ]
+}
