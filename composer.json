@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "laravel/scout": "^5.0",
-        "illuminate/support": "~5.4"
+        "illuminate/support": "~5.4",
+        "solarium/solarium": "^4.1"
     },
     "license": "MIT",
     "authors": [
