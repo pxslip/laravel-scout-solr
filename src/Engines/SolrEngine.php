@@ -36,7 +36,9 @@ class SolrEngine extends Engine
      */
     public function update($models)
     {
-        if (!config('solr.enabled')) return;
+        if (!config('solr.enabled')) {
+            return;
+        }
 
         $update = $this->client->createUpdate();
         $documents = $models->map(function ($model, $key) use ($update) {
@@ -63,7 +65,9 @@ class SolrEngine extends Engine
      */
     public function delete($models)
     {
-        if (!config('solr.enabled')) return;
+        if (!config('solr.enabled')) {
+            return;
+        }
 
         $delete = $this->client->createUpdate();
         $model = $models->first();
