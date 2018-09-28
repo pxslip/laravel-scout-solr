@@ -15,10 +15,6 @@ class SolrScoutServiceProvider extends ServiceProvider
         resolve(EngineManager::class)->extend('solr', function () {
             return resolve(SolrEngine::class);
         });
-        // publish the solr.php config file when the user publishes this provider
-        $this->publishes([
-            __DIR__.'/../config/scout-solr.php' => config_path('scout-solr.php')
-        ]);
     }
 
     public function register()
@@ -29,6 +25,10 @@ class SolrScoutServiceProvider extends ServiceProvider
                 'endpoint' => config('solr.endpoints')
             ]);
         });
-        $this->mergeConfigFrom(__DIR__.'/../config/scout-solr.php', 'scout-solr');
+
+        // publish the solr.php config file when the user publishes this provider
+        $this->publishes([
+            __DIR__.'/../config/solr.php' => $this->app['path.config'].DIRECTORY_SEPARATOR.'solr.php'
+        ]);
     }
 }

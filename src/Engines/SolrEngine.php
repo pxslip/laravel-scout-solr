@@ -36,8 +36,6 @@ class SolrEngine extends Engine
      */
     public function update($models)
     {
-        if (!config('solr.enabled')) return;
-
         $update = $this->client->createUpdate();
         $documents = $models->map(function ($model, $key) use ($update) {
             $document = $update->createDocument();
@@ -63,15 +61,10 @@ class SolrEngine extends Engine
      */
     public function delete($models)
     {
-        if (!config('solr.enabled')) return;
-
         $delete = $this->client->createUpdate();
         $model = $models->first();
         $endpoint = $model->searchableAs();
-        $ids = $models->map(function ($model) {
-            return $model->getScoutKey();
-        });
-        $delete->addDeleteByIds($ids->all());
+        $delete->addDeleteByIds($models->pluck($model->getKeyName())->all());
         $delete->addCommit();
         $this->client->update($delete, $endpoint);
     }
@@ -116,12 +109,11 @@ class SolrEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param  \Laravel\Scout\Builder  $builder
      * @param  mixed  $results
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function map(Builder $builder, $results, $model)
+    public function map($results, $model)
     {
         if (count($results) === 0) {
             return Collection::make();
