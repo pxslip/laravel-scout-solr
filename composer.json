@@ -7,6 +7,19 @@
         "illuminate/support": "~5.4",
         "solarium/solarium": "^4.1"
     },
+    "autoload": {
+        "psr-4": {
+            "Scout\\Solr\\": "src/",
+            "Scout\\Solr\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Scout\\Solr\\ScoutSolrServiceProvider"
+            ]
+        }
+    },
     "license": "MIT",
     "authors": [
         {

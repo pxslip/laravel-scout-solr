@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Scout;
+namespace Scout\Solr;
 
 trait Searchable
 {
@@ -21,7 +21,7 @@ trait Searchable
      *
      * @param  string  $query
      * @param  Closure  $callback
-     * @return \App\Scout\Builder
+     * @return Scout\Solr\Builder
      */
     public static function search($query, $callback = null)
     {
