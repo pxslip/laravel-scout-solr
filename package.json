@@ -1,0 +1,25 @@
+{
+  "name": "laravel-scout-solr-site",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pxslip/laravel-scout-solr.git"
+  },
+  "author": "Will Kruse <wskruse@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pxslip/laravel-scout-solr/issues"
+  },
+  "homepage": "https://pxslip.github.io/laravel-scout-solr",
+  "devDependencies": {
+    "eslint": "^5.6.0",
+    "vuepress": "^0.14.4"
+  }
+}
