@@ -10,7 +10,7 @@ use Closure;
  */
 class Builder extends ScoutBuilder
 {
-    
+
     /**
      * Array of facet fields to facet on
      *
@@ -45,7 +45,7 @@ class Builder extends ScoutBuilder
      * @var boolean
      */
     private $useDismax = false;
-    
+
     /**
      * Add a simple key=value filter
      *
@@ -96,7 +96,7 @@ class Builder extends ScoutBuilder
     {
         return $this->where($field, $query, 'OR');
     }
-    
+
     /**
      * Add the ability to easily set a range query
      *
