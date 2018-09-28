@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Scout\Engines;
+namespace Scout\Solr\Engines;
 
 use Exception;
 use Laravel\Scout\Engines\Engine;

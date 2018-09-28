@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Scout;
+namespace Scout\Solr;
 
 use Laravel\Scout\EngineManager;
 use Illuminate\Support\ServiceProvider;
-use App\Scout\Engines\SolrEngine;
+use Scout\Solr\Engines\SolrEngine;
 
 class SolrScoutServiceProvider extends ServiceProvider
 {
-    
+
     public function boot()
     {
         // extend the Scout engine manager

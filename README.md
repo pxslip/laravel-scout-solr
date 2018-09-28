@@ -8,10 +8,10 @@ For the time being usage is limited to USHMM HE, this project may be separated a
 
 ## Usage ##
 
-As the engine uses some functionality that is not fully compatible with `Laravel\Scout\Builder` and `Laravel\Scout\Searchable` you will need to use the `App\Scout\Builder` and `App\Scout\Searchable` versions instead:
+As the engine uses some functionality that is not fully compatible with `Laravel\Scout\Builder` and `Laravel\Scout\Searchable` you will need to use the `Scout\Solr\Builder` and `Scout\Solr\Searchable` versions instead:
 
 ```php
-use App\Scout\Searchable;
+use Scout\Solr\Searchable;
 
 class MyModel extends Model {
     use Searchable;

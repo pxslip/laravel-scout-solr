@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Scout;
+namespace Scout\Solr;
 
 use Laravel\Scout\Builder as ScoutBuilder;
 use Closure;
