@@ -42,10 +42,31 @@ class SolrEngine extends Engine
 
         $update = $this->client->createUpdate();
         $documents = $models->map(function ($model, $key) use ($update) {
+            /** @var Solarium\QueryType\Update\Query\Document\Document */
             $document = $update->createDocument();
             $attrs = $model->toSearchableArray();
             if (empty($attrs)) {
                 return;
+            }
+            // introduce functionality for solr meta data
+            if (in_array('meta', $attrs)) {
+                $meta = $attrs['meta'];
+                // check if their are boosts to apply to the document
+                if (in_array('boosts', $meta)) {
+                    $boosts = $meta['boosts'];
+                    if (in_array('document', $boosts)) {
+                        if (is_float($boosts['document'])) {
+                            $document->setBoost($boosts['document']);
+                        }
+                        unset($boosts['document']);
+                    }
+                    foreach ($boosts as $field => $boost) {
+                        if (is_float($boost)) {
+                            $document->setFieldBoost($field, $boost);
+                        }
+                    }
+                }
+                unset($attrs['meta']);
             }
             // leave this extra here to allow for modification if needed
             foreach ($attrs as $key => $attr) {
