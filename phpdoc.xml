@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+    <title>Laravel Scout Solr Engine</title>
+    <parser>
+        <target>build</target>
+    </parser>
+    <transformer>
+        <target>docs</target>
+    </transformer>
+    <transformations>
+        <template name="../../phpdoc-markdown-vuepress/data/templates/markdown-public" />
+    </transformations>
+    <files>
+        <directory>src</directory>
+        <ignore>test/*</ignore>
+    </files>
+</phpdoc>

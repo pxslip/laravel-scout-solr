@@ -4,7 +4,7 @@ This engine provides the interface between Laravel Scout and a Solr instance.
 
 ## Installation ##
 
-For the time being usage is limited to USHMM HE, this project may be separated and provided as a private composer package.
+
 
 ## Usage ##
 
