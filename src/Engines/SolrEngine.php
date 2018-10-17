@@ -130,7 +130,7 @@ class SolrEngine extends Engine
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param  mixed  $results
+     * @param  Solarium\QueryType\Select\Result\Result  $results
      * @return \Illuminate\Support\Collection
      */
     public function mapIds($results)
@@ -142,7 +142,7 @@ class SolrEngine extends Engine
      * Map the given results to instances of the given model.
      *
      * @param  \Laravel\Scout\Builder  $builder
-     * @param  mixed  $results
+     * @param  Solarium\QueryType\Select\Result\Result  $results
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -158,7 +158,8 @@ class SolrEngine extends Engine
             ->all();
 
         // TODO: Is there a better way to handle including faceting on a mapped result?
-        if (($facetSet = $results->getFacetSet())->count() > 0) {
+        $facetSet = $results->getFacetSet();
+        if ($facetSet->count() > 0) {
             $facets = $facetSet->getFacets();
         } else {
             $facets = [];

@@ -6,7 +6,7 @@ use Laravel\Scout\EngineManager;
 use Illuminate\Support\ServiceProvider;
 use Scout\Solr\Engines\SolrEngine;
 
-class SolrScoutServiceProvider extends ServiceProvider
+class ScoutSolrServiceProvider extends ServiceProvider
 {
 
     public function boot()

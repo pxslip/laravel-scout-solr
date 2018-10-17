@@ -27,4 +27,9 @@ trait Searchable
     {
         return new Builder(new static, $query, $callback);
     }
+
+    public function getSearchKey()
+    {
+        return $this->id;
+    }
 }
