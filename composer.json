@@ -1,13 +1,12 @@
 {
-    "name": "pxslip/laravel-scout-solr-driver",
+    "name": "pxslip/laravel-scout-solr",
     "description": "A driver for the Laravel Scout search tools, using Apache Solr for the backend",
     "type": "library",
     "require": {
         "php": "^7.0",
         "laravel/scout": "^5.0",
         "illuminate/support": "~5.4",
-        "solarium/solarium": "^4.1",
-        "pxslip/phpdoc-markdown-vuepress": "^0.3.0"
+        "solarium/solarium": "^4.1"
     },
     "autoload": {
         "psr-4": {
