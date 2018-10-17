@@ -50,12 +50,12 @@ class SolrEngine extends Engine
                 return;
             }
             // introduce functionality for solr meta data
-            if (in_array('meta', $attrs)) {
+            if (array_key_exists('meta', $attrs)) {
                 $meta = $attrs['meta'];
                 // check if their are boosts to apply to the document
-                if (in_array('boosts', $meta)) {
+                if (array_key_exists('boosts', $meta)) {
                     $boosts = $meta['boosts'];
-                    if (in_array('document', $boosts)) {
+                    if (array_key_exists('document', $boosts)) {
                         if (is_float($boosts['document'])) {
                             $document->setBoost($boosts['document']);
                         }
