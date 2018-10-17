@@ -36,7 +36,8 @@ class SolrEngine extends Engine
      */
     public function update($models)
     {
-        if (!config('solr.enabled')) {
+        $model = $models->first();
+        if (!$model->shouldBeSearchable()) {
             return;
         }
 
@@ -76,7 +77,7 @@ class SolrEngine extends Engine
         });
         $update->addDocuments($documents->toArray());
         $update->addCommit();
-        $this->client->update($update, $models->first()->searchableAs());
+        $this->client->update($update, $model->searchableAs());
     }
     /**
      * Remove the given model from the index.
@@ -86,12 +87,8 @@ class SolrEngine extends Engine
      */
     public function delete($models)
     {
-        if (!config('solr.enabled')) {
-            return;
-        }
-
-        $delete = $this->client->createUpdate();
         $model = $models->first();
+        $delete = $this->client->createUpdate();
         $endpoint = $model->searchableAs();
         $ids = $models->map(function ($model) {
             return $model->getScoutKey();
