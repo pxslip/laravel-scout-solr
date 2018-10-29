@@ -4,7 +4,16 @@ This engine provides the interface between Laravel Scout and a Solr instance.
 
 ## Installation ##
 
+`composer require pxslip/laravel-scout-solr`
 
+For Laravel <= 5.4 the service provider should be registered in `config/app.php`
+
+```php
+'providers' => [
+    // ...other providers
+    Scout\Solr\ScoutSolrServiceProvider::class,
+]
+```
 
 ## Usage ##
 
