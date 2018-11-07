@@ -7,7 +7,7 @@ trait Searchable
     use \Laravel\Scout\Searchable;
 
     /**
-     * Returns the name of the index/core where this data is searchable
+     * Returns the name of the index/core where this data is searchable.
      *
      * @return string the name of the core to search
      */
