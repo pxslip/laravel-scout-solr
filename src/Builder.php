@@ -2,52 +2,51 @@
 
 namespace Scout\Solr;
 
-use Laravel\Scout\Builder as ScoutBuilder;
 use Closure;
+use Laravel\Scout\Builder as ScoutBuilder;
 
 /**
- * Extend the Scout Builder class to allow for more complicated queries against Solr
+ * Extend the Scout Builder class to allow for more complicated queries against Solr.
  */
 class Builder extends ScoutBuilder
 {
-
     /**
-     * Array of facet fields to facet on
+     * Array of facet fields to facet on.
      *
      * @var string[]
      */
     public $facetFields = [];
 
     /**
-     * Array of facet queries mapped by field
+     * Array of facet queries mapped by field.
      *
      * @var string[string]
      */
     public $facetQueries = [];
 
     /**
-     * Array of array of fields to do a facet pivot
+     * Array of array of fields to do a facet pivot.
      *
      * @var [][]
      */
     public $facetPivots = [];
 
     /**
-     * Array of field => boost values to add to the query
+     * Array of field => boost values to add to the query.
      *
      * @var array
      */
     private $boostFields = [];
 
     /**
-     * Gets set when either the useDismax() method is called, or if one of the boosting methods is called
+     * Gets set when either the useDismax() method is called, or if one of the boosting methods is called.
      *
-     * @var boolean
+     * @var bool
      */
     private $useDismax = false;
 
     /**
-     * Add a simple key=value filter
+     * Add a simple key=value filter.
      *
      * @param string|Closure|array $field The field to compare against
      * @param                      $value The value to compare to
@@ -61,8 +60,9 @@ class Builder extends ScoutBuilder
             $this->wheres[] = [
                 'field' => 'nested',
                 'queries' => $field,
-                'boolean' => $boolean
+                'boolean' => $boolean,
             ];
+
             return $this;
         }
 
@@ -72,20 +72,22 @@ class Builder extends ScoutBuilder
             $this->wheres[] = [
                 'field' => 'nested',
                 'queries' => $query->wheres,
-                'boolean' => $boolean
+                'boolean' => $boolean,
             ];
+
             return $this;
         }
         $this->wheres[] = [
             'field' => $field,
             'query' => $query,
-            'boolean' => $boolean
+            'boolean' => $boolean,
         ];
+
         return $this;
     }
 
     /**
-     * Add a filter query separated by OR
+     * Add a filter query separated by OR.
      *
      * @param string|Closure|array $field the name of the field to filter against
      * @param string               $query the query to filter using
@@ -98,7 +100,7 @@ class Builder extends ScoutBuilder
     }
 
     /**
-     * Add the ability to easily set a range query
+     * Add the ability to easily set a range query.
      *
      * @param string $field The name of the field to filter against
      * @param string $low   The low value of the range
@@ -109,10 +111,12 @@ class Builder extends ScoutBuilder
     public function whereRange(string $field, string $low, string $high, $boolean = 'AND')
     {
         $query = "[$low TO $high]";
+
         return $this->where($field, $query, $boolean);
     }
+
     /**
-     * Add a facet to this search on the given field
+     * Add a facet to this search on the given field.
      *
      * @param  string $field The field to include for faceting
      *
@@ -121,11 +125,12 @@ class Builder extends ScoutBuilder
     public function facetField(string $field)
     {
         $this->facetFields[] = $field;
+
         return $this;
     }
 
     /**
-     * Add a facet query
+     * Add a facet query.
      *
      * @param  string $field the field to facet on
      * @param  string $query the query to work with
@@ -139,14 +144,15 @@ class Builder extends ScoutBuilder
             $this->facetQueries[$field][] = $query;
         } else {
             $this->facetQueries[$field] = [
-                $query
+                $query,
             ];
         }
+
         return $this;
     }
 
     /**
-     * Add a facet pivot query
+     * Add a facet pivot query.
      *
      * @param  array $fields the fields to pivot on
      *
@@ -155,21 +161,22 @@ class Builder extends ScoutBuilder
     public function facetPivot(array $fields)
     {
         $this->facetPivots[] = $fields;
+
         return $this;
     }
 
     /**
-     * Get a new builder that can be used to build a nested query
+     * Get a new builder that can be used to build a nested query.
      *
      * @return void
      */
     private function builderForNested()
     {
-        return new Builder($this->model, $this->query, null);
+        return new self($this->model, $this->query, null);
     }
 
     /**
-     * Add a boost to the query
+     * Add a boost to the query.
      *
      * @param string $field
      * @param string|int $boost
@@ -179,6 +186,7 @@ class Builder extends ScoutBuilder
     {
         $this->useDismax = true;
         $this->boostFields[$field] = $boost;
+
         return $this;
     }
 
@@ -204,17 +212,18 @@ class Builder extends ScoutBuilder
 
     public function hasBoosts()
     {
-        return !empty($this->boostFields);
+        return ! empty($this->boostFields);
     }
 
     /**
-     * Inform the builder that we want to use dismax when building the query
+     * Inform the builder that we want to use dismax when building the query.
      *
      * @return $this
      */
     public function useDismax()
     {
         $this->useDismax = true;
+
         return $this;
     }
 

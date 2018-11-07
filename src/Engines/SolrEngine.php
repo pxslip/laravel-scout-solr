@@ -2,26 +2,23 @@
 
 namespace Scout\Solr\Engines;
 
-use Exception;
-use Laravel\Scout\Engines\Engine;
 use Laravel\Scout\Builder;
+use Laravel\Scout\Engines\Engine;
 use Solarium\Client as SolariumClient;
 use Solarium\QueryType\Select\Query\Query;
 use Illuminate\Database\Eloquent\Collection;
 
 class SolrEngine extends Engine
 {
-
-
     /**
-     * The Solarium client we are currently using
+     * The Solarium client we are currently using.
      *
      * @var \Solarium\Client
      */
     private $client;
 
     /**
-     * Constructor takes an initialized Solarium client as its only parameter
+     * Constructor takes an initialized Solarium client as its only parameter.
      */
     public function __construct(SolariumClient $client)
     {
@@ -37,7 +34,7 @@ class SolrEngine extends Engine
     public function update($models)
     {
         $model = $models->first();
-        if (!$model->shouldBeSearchable()) {
+        if (! $model->shouldBeSearchable()) {
             return;
         }
 
@@ -73,12 +70,14 @@ class SolrEngine extends Engine
             foreach ($attrs as $key => $attr) {
                 $document->$key = $attr;
             }
+
             return $document;
         });
         $update->addDocuments($documents->toArray());
         $update->addCommit();
         $this->client->update($update, $model->searchableAs());
     }
+
     /**
      * Remove the given model from the index.
      *
@@ -97,6 +96,7 @@ class SolrEngine extends Engine
         $delete->addCommit();
         $this->client->update($delete, $endpoint);
     }
+
     /**
      * Perform the given search on the engine.
      *
@@ -107,6 +107,7 @@ class SolrEngine extends Engine
     {
         return $this->performSearch($builder);
     }
+
     /**
      * Perform the given search on the engine.
      *
@@ -119,11 +120,13 @@ class SolrEngine extends Engine
     {
         //decrement the page number as we're actually dealing with an offset, not page number
         $page--;
+
         return $this->performSearch($builder, [
             'start' => $page * $perPage,
-            'rows' => $perPage
+            'rows' => $perPage,
         ]);
     }
+
     /**
      * Pluck and return the primary keys of the given results.
      *
@@ -135,6 +138,7 @@ class SolrEngine extends Engine
         // how do we get the pk without a model?
         return collect($results)->pluck('id')->values();
     }
+
     /**
      * Map the given results to instances of the given model.
      *
@@ -168,8 +172,10 @@ class SolrEngine extends Engine
             ->get()
             ->map(function ($item) use ($facets) {
                 $item->facets = $facets;
+
                 return $item;
             });
+
         return $models;
     }
 
@@ -185,7 +191,7 @@ class SolrEngine extends Engine
     }
 
     /**
-     * Actually perform the search, allows for options to be passed like pagination
+     * Actually perform the search, allows for options to be passed like pagination.
      *
      * @param \Laravel\Scout\Builder $builder The query builder we were passed
      * @param array $options An array of options to use to do things like pagination, faceting?
@@ -205,6 +211,7 @@ class SolrEngine extends Engine
                         foreach ($item as $query) {
                             $query[] = (is_numeric($key)) ? $query : "$key:$query";
                         }
+
                         return implode(' ', $query);
                     } else {
                         return (is_numeric($key)) ? $query : "$key:$query";
@@ -231,12 +238,12 @@ class SolrEngine extends Engine
 
         // build any faceting
         $facetSet = $query->getFacetSet();
-        if (!empty($builder->facetFields)) {
+        if (! empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
             }
         }
-        if (!empty($builder->facetQueries)) {
+        if (! empty($builder->facetQueries)) {
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
@@ -248,7 +255,7 @@ class SolrEngine extends Engine
                 }
             }
         }
-        if (!empty($builder->facetPivots)) {
+        if (! empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
@@ -271,7 +278,7 @@ class SolrEngine extends Engine
     }
 
     /**
-     * Convert a set of wheres (key => value pairs) into a filter query for Solr
+     * Convert a set of wheres (key => value pairs) into a filter query for Solr.
      *
      * @param \Laravel\Scout\Builder $builder The query builder that contains the wheres
      *
@@ -281,11 +288,12 @@ class SolrEngine extends Engine
     {
         $collection = collect($builder->wheres);
         $query = $collection->reduce([$this, 'buildFilter']);
+
         return $query;
     }
 
     /**
-     * build an individual filter
+     * build an individual filter.
      *
      * @param string $query The current query string to pass to fq
      * @param array  $item
@@ -293,7 +301,7 @@ class SolrEngine extends Engine
      */
     public function buildFilter($query, $item)
     {
-        if (!empty($query)) {
+        if (! empty($query)) {
             // prepend the boolean from this query
             $query .= " {$item['boolean']} ";
         } else {
@@ -302,7 +310,7 @@ class SolrEngine extends Engine
         }
         if ($item['field'] === 'nested') {
             // handle the nested queries recursively
-            $query .= ' (' . collect($item['queries'])->reduce([$this, 'buildFilter']) . ') ';
+            $query .= ' ('.collect($item['queries'])->reduce([$this, 'buildFilter']).') ';
         } elseif (is_array($item['query'])) {
             $query .= '(';
             $query .= collect($item['query'])
@@ -315,6 +323,7 @@ class SolrEngine extends Engine
         } else {
             $query .= "{$item['field']}:{$item['query']}";
         }
+
         return $query;
     }
 }
