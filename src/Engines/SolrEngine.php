@@ -310,12 +310,13 @@ class SolrEngine extends Engine
             $mode = $data['mode'];
             $items = is_array($data['query']) ? $data['query'] : [$data['query']];
             $start = count($carryItems);
-            $query = implode(' OR ', array_map(function ($index) use($field, $mode) {
+            $query = implode(' OR ', array_map(function ($index) use ($field, $mode) {
                 return "$field:%$mode$index%";
             }, range($start + 1, $start + count($items))));
         }
 
         $carryQuery = $carry['query'] ?? '';
+
         return [
             'query' => empty($carryQuery) ?
                 sprintf('(%s)', $query) :
