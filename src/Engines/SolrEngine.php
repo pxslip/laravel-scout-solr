@@ -3,8 +3,8 @@
 namespace Scout\Solr\Engines;
 
 use Laravel\Scout\Builder;
-use Laravel\Scout\Engines\Engine;
 use Scout\Solr\Searchable;
+use Laravel\Scout\Engines\Engine;
 use Solarium\Client as SolariumClient;
 use Illuminate\Database\Eloquent\Collection;
 
