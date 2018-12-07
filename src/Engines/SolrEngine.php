@@ -124,6 +124,7 @@ class SolrEngine extends Engine
         $page--;
 
         $builder->take($perPage);
+
         return $this->performSearch($builder, [
             'start' => $page * $perPage,
         ]);
