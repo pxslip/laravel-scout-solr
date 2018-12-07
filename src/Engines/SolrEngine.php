@@ -121,9 +121,9 @@ class SolrEngine extends Engine
         //decrement the page number as we're actually dealing with an offset, not page number
         $page--;
 
+        $builder->take($perPage);
         return $this->performSearch($builder, [
             'start' => $page * $perPage,
-            'rows' => $perPage,
         ]);
     }
 
@@ -270,8 +270,8 @@ class SolrEngine extends Engine
         if (array_key_exists('start', $options)) {
             $query->setStart($options['start']);
         }
-        if (array_key_exists('rows', $options)) {
-            $query->setRows($options['rows']);
+        if ($builder->limit) {
+            $query->setRows($builder->limit);
         }
 
         return $this->client->select($query, $endpoint);
