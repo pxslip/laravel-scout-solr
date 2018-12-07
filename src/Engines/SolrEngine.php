@@ -240,6 +240,7 @@ class SolrEngine extends Engine
 
         // build any faceting
         $facetSet = $query->getFacetSet();
+        $facetSet->setOptions($builder->facetOptions);
         if (! empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);

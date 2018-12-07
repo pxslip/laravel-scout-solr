@@ -11,6 +11,13 @@ use Laravel\Scout\Builder as ScoutBuilder;
 class Builder extends ScoutBuilder
 {
     /**
+     * Array of options for the facetSet. <option> => <value> format.
+     *
+     * @var string[]
+     */
+    public $facetOptions = [];
+
+    /**
      * Array of facet fields to facet on.
      *
      * @var string[]
@@ -163,6 +170,22 @@ class Builder extends ScoutBuilder
     public function facetPivot(array $fields)
     {
         $this->facetPivots[] = $fields;
+
+        return $this;
+    }
+
+    /**
+     * Add an option to apply on the Solarium FacetSet
+     * See https://github.com/solariumphp/solarium/blob/master/src/Component/FacetSet.php for possible options.
+     *
+     * @param  string $option The option name
+     * @param  mixed  $value  The option value
+     *
+     * @return self  To allow for fluent chaining
+     */
+    public function setFacetOption($option, $value)
+    {
+        $this->facetOptions[$option] = $value;
 
         return $this;
     }
