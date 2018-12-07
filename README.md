@@ -36,6 +36,7 @@ MyModel::where(...)
 
 ## TO DO ##
 
-- [] Add bindings instead of just passing the string for better escaping
+- [x] Add bindings instead of just passing the string for better escaping
 - [x] Add nested querying to Builder
 - [x] Add nested querying to ScoutEngine
+- [ ] Write tests
