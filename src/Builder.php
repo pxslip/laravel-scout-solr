@@ -11,7 +11,7 @@ use Laravel\Scout\Builder as ScoutBuilder;
 class Builder extends ScoutBuilder
 {
     /**
-     * Array of options for the facetSet. <option> => <value> format
+     * Array of options for the facetSet. <option> => <value> format.
      *
      * @var string[]
      */
@@ -174,7 +174,7 @@ class Builder extends ScoutBuilder
 
     /**
      * Add an option to apply on the Solarium FacetSet
-     * See https://github.com/solariumphp/solarium/blob/master/src/Component/FacetSet.php for possible options
+     * See https://github.com/solariumphp/solarium/blob/master/src/Component/FacetSet.php for possible options.
      *
      * @param  string $option The option name
      * @param  mixed  $value  The option value
