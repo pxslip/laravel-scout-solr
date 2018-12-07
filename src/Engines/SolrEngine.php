@@ -3,9 +3,9 @@
 namespace Scout\Solr\Engines;
 
 use Laravel\Scout\Builder;
+use Scout\Solr\Searchable;
 use Laravel\Scout\Engines\Engine;
 use Solarium\Client as SolariumClient;
-use Solarium\QueryType\Select\Query\Query;
 use Illuminate\Database\Eloquent\Collection;
 
 class SolrEngine extends Engine
@@ -19,6 +19,7 @@ class SolrEngine extends Engine
 
     /**
      * Constructor takes an initialized Solarium client as its only parameter.
+     * @param SolariumClient $client The Solarium client to use
      */
     public function __construct(SolariumClient $client)
     {
@@ -39,12 +40,13 @@ class SolrEngine extends Engine
         }
 
         $update = $this->client->createUpdate();
-        $documents = $models->map(function ($model, $key) use ($update) {
-            /** @var Solarium\QueryType\Update\Query\Document\Document */
+        $documents = $models->map(function ($model) use ($update) {
+            /** @var \Solarium\QueryType\Update\Query\Document\Document */
             $document = $update->createDocument();
+            /** @var Searchable $model */
             $attrs = $model->toSearchableArray();
             if (empty($attrs)) {
-                return;
+                return false;
             }
             // introduce functionality for solr meta data
             if (array_key_exists('meta', $attrs)) {
@@ -72,7 +74,7 @@ class SolrEngine extends Engine
             }
 
             return $document;
-        });
+        })->filter();
         $update->addDocuments($documents->toArray());
         $update->addCommit();
         $this->client->update($update, $model->searchableAs());
@@ -89,7 +91,7 @@ class SolrEngine extends Engine
         $model = $models->first();
         $delete = $this->client->createUpdate();
         $endpoint = $model->searchableAs();
-        $ids = $models->map(function ($model) {
+        $ids = $models->map(function (Searchable $model) {
             return $model->getScoutKey();
         });
         $delete->addDeleteByIds($ids->all());
@@ -121,16 +123,16 @@ class SolrEngine extends Engine
         //decrement the page number as we're actually dealing with an offset, not page number
         $page--;
 
+        $builder->take($perPage);
         return $this->performSearch($builder, [
             'start' => $page * $perPage,
-            'rows' => $perPage,
         ]);
     }
 
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param  Solarium\QueryType\Select\Result\Result  $results
+     * @param  \Solarium\QueryType\Select\Result\Result $results
      * @return \Illuminate\Support\Collection
      */
     public function mapIds($results)
@@ -143,7 +145,7 @@ class SolrEngine extends Engine
      * Map the given results to instances of the given model.
      *
      * @param  \Laravel\Scout\Builder  $builder
-     * @param  Solarium\QueryType\Select\Result\Result  $results
+     * @param  \Solarium\QueryType\Select\Result\Result  $results
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -193,12 +195,12 @@ class SolrEngine extends Engine
     /**
      * Actually perform the search, allows for options to be passed like pagination.
      *
-     * @param Builder $builder The query builder we were passed
+     * @param \Scout\Solr\Builder $builder The query builder we were passed
      * @param array $options An array of options to use to do things like pagination, faceting?
      *
      * @return \Solarium\Core\Query\Result\Result The results of the query
      */
-    protected function performSearch(Builder $builder, array $options = [])
+    protected function performSearch(\Scout\Solr\Builder $builder, array $options = [])
     {
         $endpoint = $builder->model->searchableAs();
         // build the query string for the q parameter
@@ -214,7 +216,7 @@ class SolrEngine extends Engine
 
                         return implode(' ', $query);
                     } else {
-                        return (is_numeric($key)) ? $query : "$key:$query";
+                        return (is_numeric($key)) ? $item : "$key:$item";
                     }
                 })
                 ->filter()
@@ -271,8 +273,8 @@ class SolrEngine extends Engine
         if (array_key_exists('start', $options)) {
             $query->setStart($options['start']);
         }
-        if (array_key_exists('rows', $options)) {
-            $query->setRows($options['rows']);
+        if ($builder->limit) {
+            $query->setRows($builder->limit);
         }
 
         return $this->client->select($query, $endpoint);
@@ -315,7 +317,7 @@ class SolrEngine extends Engine
         } elseif (is_array($item['query'])) {
             $query .= '(';
             $query .= collect($item['query'])
-                ->map(function ($qString, $key) use ($item) {
+                ->map(function ($qString) use ($item) {
                     return "{$item['field']}:$qString";
                 })
                 ->filter()

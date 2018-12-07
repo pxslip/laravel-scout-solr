@@ -27,7 +27,7 @@ class Builder extends ScoutBuilder
     /**
      * Array of facet queries mapped by field.
      *
-     * @var string[string]
+     * @var array|string[string]
      */
     public $facetQueries = [];
 
@@ -56,14 +56,15 @@ class Builder extends ScoutBuilder
      * Add a simple key=value filter.
      *
      * @param string|Closure|array $field The field to compare against
-     * @param                      $value The value to compare to
+     * @param mixed                $query The value to compare to
+     * @param string               $boolean 'AND' or 'OR'
      *
      * @return self   $this to allow for fluent queries
      */
     public function where($field, $query = null, $boolean = 'AND')
     {
         if (is_array($field)) {
-            // we're tring to add a nested query via array
+            // we're trying to add a nested query via array
             $this->wheres[] = [
                 'field' => 'nested',
                 'queries' => $field,
@@ -112,6 +113,7 @@ class Builder extends ScoutBuilder
      * @param string $field The name of the field to filter against
      * @param string $low   The low value of the range
      * @param string $high  The high value of the range
+     * @param string               $boolean 'AND' or 'OR'
      *
      * @return self          $this to allow for fluent queries
      */
@@ -191,7 +193,7 @@ class Builder extends ScoutBuilder
     /**
      * Get a new builder that can be used to build a nested query.
      *
-     * @return void
+     * @return static
      */
     private function builderForNested()
     {
