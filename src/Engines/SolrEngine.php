@@ -237,7 +237,7 @@ class SolrEngine extends Engine
         // get the filter query
         // TODO: this is highly inefficient due to the unique key? Or will the query still be cached?
         $filterQuery = $this->filters($builder);
-        $query->createFilterQuery(md5($filterQuery))->setQuery($filterQuery);
+        $query->createFilterQuery(md5($filterQuery['query']))->setQuery($filterQuery['query'], $filterQuery['items']);
 
         // build any faceting
         $facetSet = $query->getFacetSet();
@@ -290,44 +290,42 @@ class SolrEngine extends Engine
      */
     protected function filters(Builder $builder)
     {
-        $collection = collect($builder->wheres);
-        $query = $collection->reduce([$this, 'buildFilter']);
-
-        return $query;
+        return collect($builder->wheres)->reduce([$this, 'buildFilter']);
     }
 
     /**
      * build an individual filter.
      *
-     * @param string $query The current query string to pass to fq
-     * @param array  $item
-     * @return string
+     * @param array  $carry The current query string to pass to fq
+     * @param array  $data
+     * @return array
      */
-    public function buildFilter($query, $item)
+    public function buildFilter(array $carry = null, array $data): array
     {
-        if (! empty($query)) {
-            // prepend the boolean from this query
-            $query .= " {$item['boolean']} ";
-        } else {
-            //initialize the query string
-            $query = '';
-        }
-        if ($item['field'] === 'nested') {
+        $carryItems = $carry['items'] ?? [];
+
+        if ($data['field'] === 'nested') {
             // handle the nested queries recursively
-            $query .= ' ('.collect($item['queries'])->reduce([$this, 'buildFilter']).') ';
-        } elseif (is_array($item['query'])) {
-            $query .= '(';
-            $query .= collect($item['query'])
-                ->map(function ($qString) use ($item) {
-                    return "{$item['field']}:$qString";
-                })
-                ->filter()
-                ->implode(' OR ');
-            $query .= ')';
+            $nested = array_reduce($data['queries'], [$this, 'buildFilter']);
+            $query = $nested['query'];
+            $items = $nested['items'];
         } else {
-            $query .= "{$item['field']}:{$item['query']}";
+            $field = $data['field'];
+            $mode = $data['mode'];
+            $items = is_array($data['query']) ? $data['query'] : [$data['query']];
+            $start = count($carryItems);
+            $query = implode(' OR ', array_map(function ($index) use ($field, $mode) {
+                return "$field:%$mode$index%";
+            }, range($start + 1, $start + count($items))));
         }
 
-        return $query;
+        $carryQuery = $carry['query'] ?? '';
+
+        return [
+            'query' => empty($carryQuery) ?
+                sprintf('(%s)', $query) :
+                sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
+            'items' => array_merge($carryItems, $items),
+        ];
     }
 }
