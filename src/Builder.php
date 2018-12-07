@@ -58,10 +58,11 @@ class Builder extends ScoutBuilder
      * @param string|Closure|array $field The field to compare against
      * @param mixed                $query The value to compare to
      * @param string               $boolean 'AND' or 'OR'
+     * @param char                 $mode Mode to use for placeholder (see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/).
      *
      * @return self   $this to allow for fluent queries
      */
-    public function where($field, $query = null, $boolean = 'AND')
+    public function where($field, $query = null, $boolean = 'AND', $mode = 'L')
     {
         if (is_array($field)) {
             // we're trying to add a nested query via array
@@ -69,6 +70,7 @@ class Builder extends ScoutBuilder
                 'field' => 'nested',
                 'queries' => $field,
                 'boolean' => $boolean,
+                'mode' => $mode,
             ];
 
             return $this;
@@ -81,6 +83,7 @@ class Builder extends ScoutBuilder
                 'field' => 'nested',
                 'queries' => $query->wheres,
                 'boolean' => $boolean,
+                'mode' => $mode,
             ];
 
             return $this;
@@ -89,6 +92,7 @@ class Builder extends ScoutBuilder
             'field' => $field,
             'query' => $query,
             'boolean' => $boolean,
+            'mode' => $mode,
         ];
 
         return $this;
