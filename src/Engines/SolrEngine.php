@@ -193,7 +193,7 @@ class SolrEngine extends Engine
     /**
      * Actually perform the search, allows for options to be passed like pagination.
      *
-     * @param \Laravel\Scout\Builder $builder The query builder we were passed
+     * @param Builder $builder The query builder we were passed
      * @param array $options An array of options to use to do things like pagination, faceting?
      *
      * @return \Solarium\Core\Query\Result\Result The results of the query
@@ -238,6 +238,7 @@ class SolrEngine extends Engine
 
         // build any faceting
         $facetSet = $query->getFacetSet();
+        $facetSet->setOptions($builder->facetOptions);
         if (! empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
