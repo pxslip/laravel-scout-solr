@@ -91,7 +91,7 @@ class SolrEngine extends Engine
         $model = $models->first();
         $delete = $this->client->createUpdate();
         $endpoint = $model->searchableAs();
-        $ids = $models->map(function (Searchable $model) {
+        $ids = $models->map(function ($model) {
             return $model->getScoutKey();
         });
         $delete->addDeleteByIds($ids->all());
