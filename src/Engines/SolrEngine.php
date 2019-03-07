@@ -5,6 +5,7 @@ namespace Scout\Solr\Engines;
 use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
 use Laravel\Scout\Engines\Engine;
+use Laravel\Scout\Builder as BaseBuilder;
 use Solarium\Client as SolariumClient;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -105,11 +106,11 @@ class SolrEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param Builder $builder
+     * @param BaseBuilder $builder
      *
      * @return mixed
      */
-    public function search(Builder $builder)
+    public function search(BaseBuilder $builder)
     {
         return $this->performSearch($builder);
     }
@@ -117,13 +118,13 @@ class SolrEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param Builder $builder
+     * @param BaseBuilder $builder
      * @param int  $perPage
      * @param int  $page
      *
      * @return mixed
      */
-    public function paginate(Builder $builder, $perPage, $page)
+    public function paginate(BaseBuilder $builder, $perPage, $page)
     {
         //decrement the page number as we're actually dealing with an offset, not page number
         $page--;
@@ -150,13 +151,13 @@ class SolrEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param Builder $builder
+     * @param BaseBuilder $builder
      * @param \Solarium\QueryType\Select\Result\Result  $results
      * @param \Illuminate\Database\Eloquent\Model  $model
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function map(Builder $builder, $results, $model)
+    public function map(BaseBuilder $builder, $results, $model)
     {
         if (count($results) === 0) {
             return Collection::make();
@@ -202,13 +203,16 @@ class SolrEngine extends Engine
     /**
      * Actually perform the search, allows for options to be passed like pagination.
      *
-     * @param \Scout\Solr\Builder $builder The query builder we were passed
+     * @param Builder|BaseBuilder $builder The query builder we were passed
      * @param array $options An array of options to use to do things like pagination, faceting?
      *
      * @return \Solarium\Core\Query\Result\Result The results of the query
      */
-    protected function performSearch(\Scout\Solr\Builder $builder, array $options = [])
+    protected function performSearch($builder, array $options = [])
     {
+        if (!($builder instanceof Builder)) {
+            throw new \Exception('Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable');
+        }
         $endpoint = $builder->model->searchableAs();
         // build the query string for the q parameter
         if (is_array($builder->query)) {
