@@ -5,8 +5,8 @@ namespace Scout\Solr\Engines;
 use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
 use Laravel\Scout\Engines\Engine;
-use Laravel\Scout\Builder as BaseBuilder;
 use Solarium\Client as SolariumClient;
+use Laravel\Scout\Builder as BaseBuilder;
 use Illuminate\Database\Eloquent\Collection;
 
 class SolrEngine extends Engine
@@ -210,7 +210,7 @@ class SolrEngine extends Engine
      */
     protected function performSearch($builder, array $options = [])
     {
-        if (!($builder instanceof Builder)) {
+        if (! ($builder instanceof Builder)) {
             throw new \Exception('Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable');
         }
         $endpoint = $builder->model->searchableAs();
