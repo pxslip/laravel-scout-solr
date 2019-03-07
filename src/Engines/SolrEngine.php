@@ -35,7 +35,7 @@ class SolrEngine extends Engine
     public function update($models)
     {
         $model = $models->first();
-        if (!$model->shouldBeSearchable()) {
+        if (! $model->shouldBeSearchable()) {
             return;
         }
 
