@@ -2,11 +2,11 @@
 
 namespace Scout\Solr\Engines;
 
+use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
 use Laravel\Scout\Engines\Engine;
 use Solarium\Client as SolariumClient;
 use Illuminate\Database\Eloquent\Collection;
-use Scout\Solr\Builder;
 
 class SolrEngine extends Engine
 {
