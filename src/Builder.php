@@ -219,27 +219,36 @@ class Builder extends ScoutBuilder
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getBoostsArray()
     {
         return $this->getBoostsCollection()
             ->toArray();
     }
 
+    /**
+     * @return string
+     */
     public function getBoosts()
     {
         return $this->getBoostsCollection()
             ->implode(' ');
     }
 
+    /**
+     * @return \Illuminate\Support\Collection
+     */
     public function getBoostsCollection()
     {
         return collect($this->boostFields)
-            ->map(function ($boost, $field) {
+            ->map(function ($boost, $field): string {
                 return "$field^$boost";
             });
     }
 
-    public function hasBoosts()
+    public function hasBoosts(): bool
     {
         return ! empty($this->boostFields);
     }
@@ -256,6 +265,9 @@ class Builder extends ScoutBuilder
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function isDismax()
     {
         return $this->useDismax;

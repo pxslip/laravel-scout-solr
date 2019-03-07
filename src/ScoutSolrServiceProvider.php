@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider;
 
 class ScoutSolrServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         // extend the Scout engine manager
         resolve(EngineManager::class)->extend('solr', function () {
@@ -20,7 +20,7 @@ class ScoutSolrServiceProvider extends ServiceProvider
         ]);
     }
 
-    public function register()
+    public function register(): void
     {
         // bind the solarium client as a singleton so we can DI
         $this->app->singleton(\Solarium\Client::class, function ($app) {

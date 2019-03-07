@@ -28,7 +28,9 @@
             "email": "wskruse@gmail.com"
         }
     ],
-    "require-dev": {},
+    "require-dev": {
+        "vimeo/psalm": "^3.1"
+    },
     "minimum-stability": "stable",
     "prefer-stable": true
 }

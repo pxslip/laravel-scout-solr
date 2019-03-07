@@ -2,11 +2,11 @@
 
 namespace Scout\Solr\Engines;
 
-use Laravel\Scout\Builder;
 use Scout\Solr\Searchable;
 use Laravel\Scout\Engines\Engine;
 use Solarium\Client as SolariumClient;
 use Illuminate\Database\Eloquent\Collection;
+use Scout\Solr\Builder;
 
 class SolrEngine extends Engine
 {
@@ -40,7 +40,10 @@ class SolrEngine extends Engine
         }
 
         $update = $this->client->createUpdate();
-        $documents = $models->map(function ($model) use ($update) {
+        $documents = $models->map(/**
+         * @return false|\Solarium\QueryType\Update\Query\Document\Document
+         */
+        function ($model) use ($update) {
             /** @var \Solarium\QueryType\Update\Query\Document\Document */
             $document = $update->createDocument();
             /** @var Searchable $model */
@@ -91,7 +94,7 @@ class SolrEngine extends Engine
         $model = $models->first();
         $delete = $this->client->createUpdate();
         $endpoint = $model->searchableAs();
-        $ids = $models->map(function (Searchable $model) {
+        $ids = $models->map(function ($model) {
             return $model->getScoutKey();
         });
         $delete->addDeleteByIds($ids->all());
@@ -102,7 +105,8 @@ class SolrEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param  \Laravel\Scout\Builder  $builder
+     * @param Builder $builder
+     *
      * @return mixed
      */
     public function search(Builder $builder)
@@ -113,9 +117,10 @@ class SolrEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param  \Laravel\Scout\Builder  $builder
-     * @param  int  $perPage
-     * @param  int  $page
+     * @param Builder $builder
+     * @param int  $perPage
+     * @param int  $page
+     *
      * @return mixed
      */
     public function paginate(Builder $builder, $perPage, $page)
@@ -145,9 +150,10 @@ class SolrEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param  \Laravel\Scout\Builder  $builder
-     * @param  \Solarium\QueryType\Select\Result\Result  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param Builder $builder
+     * @param \Solarium\QueryType\Select\Result\Result  $results
+     * @param \Illuminate\Database\Eloquent\Model  $model
+     *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function map(Builder $builder, $results, $model)
@@ -284,7 +290,7 @@ class SolrEngine extends Engine
     /**
      * Convert a set of wheres (key => value pairs) into a filter query for Solr.
      *
-     * @param \Laravel\Scout\Builder $builder The query builder that contains the wheres
+     * @param Builder $builder
      *
      * @return string[] The filter queries built from the builder wheres
      */
@@ -314,7 +320,7 @@ class SolrEngine extends Engine
             $mode = $data['mode'];
             $items = is_array($data['query']) ? $data['query'] : [$data['query']];
             $start = count($carryItems);
-            $query = implode(' OR ', array_map(function ($index) use ($field, $mode) {
+            $query = implode(' OR ', array_map(function ($index) use ($field, $mode): string {
                 return "$field:%$mode$index%";
             }, range($start + 1, $start + count($items))));
         }
