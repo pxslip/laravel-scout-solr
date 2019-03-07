@@ -1,5 +1,9 @@
 # Solr Engine for Scout #
 
+[![Latest Stable Version](https://poser.pugx.org/pxslip/laravel-scout-solr/version?format=flat)](https://packagist.org/packages/pxslip/laravel-scout-solr)
+[![Latest Unstable Version](https://poser.pugx.org/pxslip/laravel-scout-solr/v/unstable?format=flat)](//packagist.org/packages/pxslip/laravel-scout-solr)
+[![Total Downloads](https://poser.pugx.org/pxslip/laravel-scout-solr/downloads?format=flat)](https://packagist.org/packages/pxslip/laravel-scout-solr)
+
 This engine provides the interface between Laravel Scout and a Solr instance.
 
 ## Installation ##
