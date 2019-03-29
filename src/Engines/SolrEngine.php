@@ -313,20 +313,24 @@ class SolrEngine extends Engine
     public function buildFilter(array $carry = null, array $data): array
     {
         $carryItems = $carry['items'] ?? [];
+        $start = $carry['placeholderStart'] ?? 0;
 
         if ($data['field'] === 'nested') {
             // handle the nested queries recursively
-            $nested = array_reduce($data['queries'], [$this, 'buildFilter']);
+            $nested = collect($data['queries'])->reduce([$this, 'buildFilter'], ['placeholderStart' => $start]);
             $query = $nested['query'];
             $items = $nested['items'];
+            $start = $nested['placeholderStart'];
         } else {
             $field = $data['field'];
             $mode = $data['mode'];
             $items = is_array($data['query']) ? $data['query'] : [$data['query']];
-            $start = count($carryItems);
-            $query = implode(' OR ', array_map(function ($index) use ($field, $mode): string {
-                return "$field:%$mode$index%";
-            }, range($start + 1, $start + count($items))));
+            $end = $start + count($items);
+            $query = collect(range($start + 1, $end))
+                ->map(function (int $index) use ($field, $mode): string {
+                    return "$field:%$mode$index%";
+                })->implode(' OR ');
+            $start = $end;
         }
 
         $carryQuery = $carry['query'] ?? '';
@@ -336,6 +340,7 @@ class SolrEngine extends Engine
                 sprintf('(%s)', $query) :
                 sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
             'items' => array_merge($carryItems, $items),
+            'placeholderStart' => $start,
         ];
     }
 }
