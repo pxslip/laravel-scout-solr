@@ -189,35 +189,35 @@ class SolrEngine extends Engine
         return $models;
     }
 
-		/**
-		 * Return the appropriate sorting(ranking) query for the SQL driver.
-		 *
-		 * @param \Illuminate\Database\Eloquent\Model  $model
-		 * @param  \Illuminate\Database\Eloquent\Collection  $ids
-		 *
-		 * @return string The query that will be used for the ordering (ranking)
-		 */
-		private function orderQuery($model, $ids){
-		        $driver = $model->getConnection()->getDriverName();
-		        $model_key = $model->getKeyName();
-		        $query = '';
+    /**
+     * Return the appropriate sorting(ranking) query for the SQL driver.
+     *
+     * @param \Illuminate\Database\Eloquent\Model  $model
+     * @param  \Illuminate\Database\Eloquent\Collection  $ids
+     *
+     * @return string The query that will be used for the ordering (ranking)
+     */
+    private function orderQuery($model, $ids){
+        $driver = $model->getConnection()->getDriverName();
+        $model_key = $model->getKeyName();
+        $query = '';
 
-		        if($driver == 'pgsql'){
-		            foreach($ids as $id){
-		                $query .= sprintf('%s=%s desc, ',$model_key, $id);
-		            }
-		            $query = rtrim($query, ', ');
-		        }
-		        else if($driver == 'mysql'){
-		            $id_list = implode(',', $ids);
-		            $query = sprintf('FIELD(%s, %s)', $model_key, $id_list, 'ASC');
-		        }
-		        else{
-		            throw new \Exception('The SQL driver is not supported.');
-		        }
+        if($driver == 'pgsql'){
+            foreach($ids as $id){
+                $query .= sprintf('%s=%s desc, ',$model_key, $id);
+            }
+            $query = rtrim($query, ', ');
+        }
+        else if($driver == 'mysql'){
+            $id_list = $ids->implode(',');
+            $query = sprintf('FIELD(%s, %s)', $model_key, $id_list, 'ASC');
+        }
+        else{
+            throw new \Exception('The SQL driver is not supported.');
+        }
 
-		        return $query;
-		    }
+        return $query;
+    }
 
     /**
      * Get the total count from a raw result returned by the engine.
