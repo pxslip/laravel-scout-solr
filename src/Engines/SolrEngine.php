@@ -203,12 +203,12 @@ class SolrEngine extends Engine
         $model_key = $model->getKeyName();
         $query = '';
 
-        if($driver == 'pgsql') {
-            foreach($ids as $id){
-                $query .= sprintf('%s=%s desc, ',$model_key, $id);
+        if ($driver == 'pgsql') {
+            foreach ($ids as $id) {
+                $query .= sprintf('%s=%s desc, ', $model_key, $id);
             }
             $query = rtrim($query, ', ');
-        } else if($driver == 'mysql') {
+        } elseif ($driver == 'mysql') {
             $id_list = $ids->implode(',');
             $query = sprintf('FIELD(%s, %s)', $model_key, $id_list, 'ASC');
         } else {
