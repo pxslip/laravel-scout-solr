@@ -197,22 +197,21 @@ class SolrEngine extends Engine
      *
      * @return string The query that will be used for the ordering (ranking)
      */
-    private function orderQuery($model, $ids){
+    private function orderQuery($model, $ids)
+    {
         $driver = $model->getConnection()->getDriverName();
         $model_key = $model->getKeyName();
         $query = '';
 
-        if($driver == 'pgsql'){
+        if($driver == 'pgsql') {
             foreach($ids as $id){
                 $query .= sprintf('%s=%s desc, ',$model_key, $id);
             }
             $query = rtrim($query, ', ');
-        }
-        else if($driver == 'mysql'){
+        } else if($driver == 'mysql') {
             $id_list = $ids->implode(',');
             $query = sprintf('FIELD(%s, %s)', $model_key, $id_list, 'ASC');
-        }
-        else{
+        } else {
             throw new \Exception('The SQL driver is not supported.');
         }
 
