@@ -208,7 +208,7 @@ class SolrEngine extends Engine
                 $query .= sprintf('%s=%s desc, ', $model_key, $id);
             }
             $query = rtrim($query, ', ');
-        } else if ($driver == 'mysql') {
+        } elseif ($driver == 'mysql') {
             $id_list = $ids->implode(',');
             $query = sprintf('FIELD(%s, %s)', $model_key, $id_list, 'ASC');
         } else {
@@ -267,7 +267,7 @@ class SolrEngine extends Engine
         $query = $this->client->createSelect();
         if ($builder->isDismax()) {
             $dismax = $query->getDisMax();
-        } else if ($builder->isEDismax()) {
+        } elseif ($builder->isEDismax()) {
             $dismax = $query->getEDisMax();
         }
 
