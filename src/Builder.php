@@ -272,6 +272,7 @@ class Builder extends ScoutBuilder
         if (strpos($this->query, '*') !== false) {
             $this->useExtendedDismax = true;
         }
+
         return $this;
     }
 
@@ -284,6 +285,7 @@ class Builder extends ScoutBuilder
     {
         $this->useDismax();
         $this->useExtendedDismax = true;
+
         return $this;
     }
 

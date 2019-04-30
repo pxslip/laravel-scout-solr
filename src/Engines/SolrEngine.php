@@ -208,7 +208,7 @@ class SolrEngine extends Engine
                 $query .= sprintf('%s=%s desc, ', $model_key, $id);
             }
             $query = rtrim($query, ', ');
-        } elseif ($driver == 'mysql') {
+        } else if ($driver == 'mysql') {
             $id_list = $ids->implode(',');
             $query = sprintf('FIELD(%s, %s)', $model_key, $id_list, 'ASC');
         } else {
