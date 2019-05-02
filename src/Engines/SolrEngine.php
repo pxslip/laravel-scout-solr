@@ -267,9 +267,12 @@ class SolrEngine extends Engine
         $query = $this->client->createSelect();
         if ($builder->isDismax()) {
             $dismax = $query->getDisMax();
-            if (empty($queryString)) {
-                $dismax->setQueryAlternative('*:*');
-            }
+        } elseif ($builder->isEDismax()) {
+            $dismax = $query->getEDisMax();
+        }
+
+        if (isset($dismax) && empty($queryString)) {
+            $dismax->setQueryAlternative('*:*');
         }
         $query->setQuery($queryString);
 

@@ -53,6 +53,13 @@ class Builder extends ScoutBuilder
     private $useDismax = false;
 
     /**
+     * Gets set when either the useEDismax() method is called, or if the query contains a wildcard.
+     *
+     * @var bool
+     */
+    private $useExtendedDismax = false;
+
+    /**
      * Add a simple key=value filter.
      *
      * @param string|Closure|array $field The field to compare against
@@ -213,10 +220,22 @@ class Builder extends ScoutBuilder
      */
     public function boostField($field, $boost)
     {
-        $this->useDismax = true;
+        $this->selectQueryParser();
         $this->boostFields[$field] = $boost;
 
         return $this;
+    }
+
+    /**
+     * Set `$useDismax` or `$useExtendedDismax` to `true` based on the query.
+     */
+    private function selectQueryParser()
+    {
+        if (strpos($this->query, '*') !== false) {
+            $this->useEDismax();
+        } else {
+            $this->useDismax();
+        }
     }
 
     /**
@@ -263,6 +282,26 @@ class Builder extends ScoutBuilder
         $this->useDismax = true;
 
         return $this;
+    }
+
+    /**
+     * Inform the builder that we want to use the *extended* dismax parser when building the query.
+     *
+     * @return $this
+     */
+    public function useEDismax()
+    {
+        $this->useExtendedDismax = true;
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEDismax()
+    {
+        return $this->useExtendedDismax;
     }
 
     /**
