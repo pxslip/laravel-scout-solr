@@ -227,7 +227,7 @@ class Builder extends ScoutBuilder
     }
 
     /**
-     * Set `$useDismax` or `$useExtendedDismax` to `true` based on the query
+     * Set `$useDismax` or `$useExtendedDismax` to `true` based on the query.
      */
     private function selectQueryParser()
     {
