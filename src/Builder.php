@@ -220,10 +220,22 @@ class Builder extends ScoutBuilder
      */
     public function boostField($field, $boost)
     {
-        $this->useDismax();
+        $this->selectQueryParser();
         $this->boostFields[$field] = $boost;
 
         return $this;
+    }
+
+    /**
+     * Set `$useDismax` or `$useExtendedDismax` to `true` based on the query
+     */
+    private function selectQueryParser()
+    {
+        if (strpos($this->query, '*') !== false) {
+            $this->useEDismax();
+        } else {
+            $this->useDismax();
+        }
     }
 
     /**
@@ -269,21 +281,16 @@ class Builder extends ScoutBuilder
     {
         $this->useDismax = true;
 
-        if (strpos($this->query, '*') !== false) {
-            $this->useExtendedDismax = true;
-        }
-
         return $this;
     }
 
     /**
-     * Inform the builder that we want to use the *enhanced* dismax parser when building the query.
+     * Inform the builder that we want to use the *extended* dismax parser when building the query.
      *
      * @return $this
      */
     public function useEDismax()
     {
-        $this->useDismax();
         $this->useExtendedDismax = true;
 
         return $this;
@@ -302,6 +309,6 @@ class Builder extends ScoutBuilder
      */
     public function isDismax()
     {
-        return $this->useDismax xor $this->useExtendedDismax;
+        return $this->useDismax;
     }
 }
