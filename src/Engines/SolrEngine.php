@@ -123,6 +123,7 @@ class SolrEngine extends Engine
         if (! $this->enabled) {
             return Collection::make();
         }
+
         return $this->performSearch($builder);
     }
 
