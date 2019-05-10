@@ -19,9 +19,9 @@ class SolrEngine extends Engine
     private $client;
 
     /**
-     * Is searching/updating disabled for this instance
+     * Is searching/updating disabled for this instance.
      *
-     * @var boolean
+     * @var bool
      */
     private $enabled = true;
 
@@ -120,9 +120,10 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return Collection::make();
         }
+
         return $this->performSearch($builder);
     }
 
