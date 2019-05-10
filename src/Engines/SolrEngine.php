@@ -19,12 +19,20 @@ class SolrEngine extends Engine
     private $client;
 
     /**
+     * Is searching/updating disabled for this instance
+     *
+     * @var boolean
+     */
+    private $enabled = true;
+
+    /**
      * Constructor takes an initialized Solarium client as its only parameter.
      * @param SolariumClient $client The Solarium client to use
      */
     public function __construct(SolariumClient $client)
     {
         $this->client = $client;
+        $this->enabled = config('solr.enabled', true);
     }
 
     /**
@@ -35,53 +43,51 @@ class SolrEngine extends Engine
      */
     public function update($models)
     {
-        $model = $models->first();
-        if (! $model->shouldBeSearchable()) {
-            return;
-        }
-
-        $update = $this->client->createUpdate();
-        $documents = $models->map(/**
-         * @return false|\Solarium\QueryType\Update\Query\Document\Document
-         */
-        function ($model) use ($update) {
-            /** @var \Solarium\QueryType\Update\Query\Document\Document */
-            $document = $update->createDocument();
-            /** @var Searchable $model */
-            $attrs = $model->toSearchableArray();
-            if (empty($attrs)) {
-                return false;
-            }
-            // introduce functionality for solr meta data
-            if (array_key_exists('meta', $attrs)) {
-                $meta = $attrs['meta'];
-                // check if their are boosts to apply to the document
-                if (array_key_exists('boosts', $meta)) {
-                    $boosts = $meta['boosts'];
-                    if (array_key_exists('document', $boosts)) {
-                        if (is_float($boosts['document'])) {
-                            $document->setBoost($boosts['document']);
-                        }
-                        unset($boosts['document']);
-                    }
-                    foreach ($boosts as $field => $boost) {
-                        if (is_float($boost)) {
-                            $document->setFieldBoost($field, $boost);
-                        }
-                    }
+        if ($this->enabled) {
+            $model = $models->first();
+            $update = $this->client->createUpdate();
+            $documents = $models->map(/**
+             * @return false|\Solarium\QueryType\Update\Query\Document\Document
+             */
+            function ($model) use ($update) {
+                /** @var \Solarium\QueryType\Update\Query\Document\Document */
+                $document = $update->createDocument();
+                /** @var Searchable $model */
+                $attrs = $model->toSearchableArray();
+                if (empty($attrs)) {
+                    return false;
                 }
-                unset($attrs['meta']);
-            }
-            // leave this extra here to allow for modification if needed
-            foreach ($attrs as $key => $attr) {
-                $document->$key = $attr;
-            }
+                // introduce functionality for solr meta data
+                if (array_key_exists('meta', $attrs)) {
+                    $meta = $attrs['meta'];
+                    // check if their are boosts to apply to the document
+                    if (array_key_exists('boosts', $meta)) {
+                        $boosts = $meta['boosts'];
+                        if (array_key_exists('document', $boosts)) {
+                            if (is_float($boosts['document'])) {
+                                $document->setBoost($boosts['document']);
+                            }
+                            unset($boosts['document']);
+                        }
+                        foreach ($boosts as $field => $boost) {
+                            if (is_float($boost)) {
+                                $document->setFieldBoost($field, $boost);
+                            }
+                        }
+                    }
+                    unset($attrs['meta']);
+                }
+                // leave this extra here to allow for modification if needed
+                foreach ($attrs as $key => $attr) {
+                    $document->$key = $attr;
+                }
 
-            return $document;
-        })->filter();
-        $update->addDocuments($documents->filter()->toArray());
-        $update->addCommit();
-        $this->client->update($update, $model->searchableAs());
+                return $document;
+            })->filter();
+            $update->addDocuments($documents->filter()->toArray());
+            $update->addCommit();
+            $this->client->update($update, $model->searchableAs());
+        }
     }
 
     /**
@@ -92,15 +98,17 @@ class SolrEngine extends Engine
      */
     public function delete($models)
     {
-        $model = $models->first();
-        $delete = $this->client->createUpdate();
-        $endpoint = $model->searchableAs();
-        $ids = $models->map(function ($model) {
-            return $model->getScoutKey();
-        });
-        $delete->addDeleteByIds($ids->all());
-        $delete->addCommit();
-        $this->client->update($delete, $endpoint);
+        if ($this->enabled) {
+            $model = $models->first();
+            $delete = $this->client->createUpdate();
+            $endpoint = $model->searchableAs();
+            $ids = $models->map(function ($model) {
+                return $model->getScoutKey();
+            });
+            $delete->addDeleteByIds($ids->all());
+            $delete->addCommit();
+            $this->client->update($delete, $endpoint);
+        }
     }
 
     /**
@@ -112,6 +120,9 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
+        if (!$this->enabled) {
+            return Collection::make();
+        }
         return $this->performSearch($builder);
     }
 
