@@ -124,7 +124,7 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
-        if (! $this->enabled) {
+        if (!$this->enabled) {
             return Collection::make();
         }
 
@@ -301,12 +301,12 @@ class SolrEngine extends Engine
         // build any faceting
         $facetSet = $query->getFacetSet();
         $facetSet->setOptions($builder->facetOptions);
-        if (! empty($builder->facetFields)) {
+        if (!empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
             }
         }
-        if (! empty($builder->facetQueries)) {
+        if (!empty($builder->facetQueries)) {
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
@@ -318,7 +318,7 @@ class SolrEngine extends Engine
                 }
             }
         }
-        if (! empty($builder->facetPivots)) {
+        if (!empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
@@ -377,7 +377,7 @@ class SolrEngine extends Engine
             $end = $start + count($items);
             $query = collect(range($start + 1, $end))
                 ->map(function (int $index) use ($field, $mode): string {
-                    return "$field:%$mode$index%";
+                    return "$field:%$mode $index%";
                 })->implode(' OR ');
             $start = $end;
         }
