@@ -88,6 +88,7 @@ class SolrEngine extends Engine
                     if ($class) {
                         $document->_modelClass = $class;
                     }
+
                     return $document;
                 }
             )->filter();
@@ -127,7 +128,7 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return Collection::make();
         }
 
@@ -304,12 +305,12 @@ class SolrEngine extends Engine
         // build any faceting
         $facetSet = $query->getFacetSet();
         $facetSet->setOptions($builder->facetOptions);
-        if (!empty($builder->facetFields)) {
+        if (! empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
             }
         }
-        if (!empty($builder->facetQueries)) {
+        if (! empty($builder->facetQueries)) {
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
@@ -321,7 +322,7 @@ class SolrEngine extends Engine
                 }
             }
         }
-        if (!empty($builder->facetPivots)) {
+        if (! empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
@@ -394,6 +395,7 @@ class SolrEngine extends Engine
             'placeholderStart' => $start,
         ];
     }
+
     /**
      * Flush all of the model's records from the engine.
      *
