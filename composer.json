@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "php": "^7.0",
-        "laravel/scout": "^5.0",
+        "laravel/scout": "*",
         "illuminate/support": "~5.4",
         "solarium/solarium": "^4.1"
     },
