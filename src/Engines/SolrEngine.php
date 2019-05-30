@@ -182,8 +182,7 @@ class SolrEngine extends Engine
 
         $ids = collect($results)
             ->pluck($model->getKeyName())
-            ->values()
-            ->all();
+            ->values();
 
         // TODO: Is there a better way to handle including faceting on a mapped result?
         $facetSet = $results->getFacetSet();
