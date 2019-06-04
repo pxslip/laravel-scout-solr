@@ -46,44 +46,46 @@ class SolrEngine extends Engine
         if ($this->enabled) {
             $model = $models->first();
             $update = $this->client->createUpdate();
-            $documents = $models->map(/**
-             * @return false|\Solarium\QueryType\Update\Query\Document\Document
-             */
-            function ($model) use ($update) {
-                /** @var \Solarium\QueryType\Update\Query\Document\Document */
-                $document = $update->createDocument();
-                /** @var Searchable $model */
-                $attrs = $model->toSearchableArray();
-                if (empty($attrs)) {
-                    return false;
-                }
-                // introduce functionality for solr meta data
-                if (array_key_exists('meta', $attrs)) {
-                    $meta = $attrs['meta'];
-                    // check if their are boosts to apply to the document
-                    if (array_key_exists('boosts', $meta)) {
-                        $boosts = $meta['boosts'];
-                        if (array_key_exists('document', $boosts)) {
-                            if (is_float($boosts['document'])) {
-                                $document->setBoost($boosts['document']);
-                            }
-                            unset($boosts['document']);
-                        }
-                        foreach ($boosts as $field => $boost) {
-                            if (is_float($boost)) {
-                                $document->setFieldBoost($field, $boost);
-                            }
-                        }
+            $documents = $models->map(
+                /**
+                 * @return false|\Solarium\QueryType\Update\Query\Document\Document
+                 */
+                function ($model) use ($update) {
+                    /** @var \Solarium\QueryType\Update\Query\Document\Document */
+                    $document = $update->createDocument();
+                    /** @var Searchable $model */
+                    $attrs = $model->toSearchableArray();
+                    if (empty($attrs)) {
+                        return false;
                     }
-                    unset($attrs['meta']);
-                }
-                // leave this extra here to allow for modification if needed
-                foreach ($attrs as $key => $attr) {
-                    $document->$key = $attr;
-                }
+                    // introduce functionality for solr meta data
+                    if (array_key_exists('meta', $attrs)) {
+                        $meta = $attrs['meta'];
+                        // check if their are boosts to apply to the document
+                        if (array_key_exists('boosts', $meta)) {
+                            $boosts = $meta['boosts'];
+                            if (array_key_exists('document', $boosts)) {
+                                if (is_float($boosts['document'])) {
+                                    $document->setBoost($boosts['document']);
+                                }
+                                unset($boosts['document']);
+                            }
+                            foreach ($boosts as $field => $boost) {
+                                if (is_float($boost)) {
+                                    $document->setFieldBoost($field, $boost);
+                                }
+                            }
+                        }
+                        unset($attrs['meta']);
+                    }
+                    // leave this extra here to allow for modification if needed
+                    foreach ($attrs as $key => $attr) {
+                        $document->$key = $attr;
+                    }
 
-                return $document;
-            })->filter();
+                    return $document;
+                }
+            )->filter();
             $update->addDocuments($documents->filter()->toArray());
             $update->addCommit();
             $this->client->update($update, $model->searchableAs());
@@ -120,7 +122,7 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
-        if (! $this->enabled) {
+        if (!$this->enabled) {
             return Collection::make();
         }
 
@@ -177,8 +179,7 @@ class SolrEngine extends Engine
 
         $ids = collect($results)
             ->pluck($model->getKeyName())
-            ->values()
-            ->all();
+            ->values();
 
         // TODO: Is there a better way to handle including faceting on a mapped result?
         $facetSet = $results->getFacetSet();
@@ -251,7 +252,7 @@ class SolrEngine extends Engine
      */
     protected function performSearch($builder, array $options = [])
     {
-        if (! ($builder instanceof Builder)) {
+        if (!($builder instanceof Builder)) {
             throw new \Exception('Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable');
         }
         $endpoint = $builder->model->searchableAs();
@@ -296,12 +297,12 @@ class SolrEngine extends Engine
         // build any faceting
         $facetSet = $query->getFacetSet();
         $facetSet->setOptions($builder->facetOptions);
-        if (! empty($builder->facetFields)) {
+        if (!empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
             }
         }
-        if (! empty($builder->facetQueries)) {
+        if (!empty($builder->facetQueries)) {
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
@@ -313,7 +314,7 @@ class SolrEngine extends Engine
                 }
             }
         }
-        if (! empty($builder->facetPivots)) {
+        if (!empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
@@ -372,7 +373,7 @@ class SolrEngine extends Engine
             $end = $start + count($items);
             $query = collect(range($start + 1, $end))
                 ->map(function (int $index) use ($field, $mode): string {
-                    return "$field:%$mode$index%";
+                    return "$field:%$mode $index%";
                 })->implode(' OR ');
             $start = $end;
         }
@@ -381,8 +382,7 @@ class SolrEngine extends Engine
 
         return [
             'query' => empty($carryQuery) ?
-                sprintf('(%s)', $query) :
-                sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
+                sprintf('(%s)', $query) : sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
             'items' => array_merge($carryItems, $items),
             'placeholderStart' => $start,
         ];
