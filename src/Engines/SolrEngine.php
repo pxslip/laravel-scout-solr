@@ -122,7 +122,7 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return Collection::make();
         }
 
@@ -252,7 +252,7 @@ class SolrEngine extends Engine
      */
     protected function performSearch($builder, array $options = [])
     {
-        if (!($builder instanceof Builder)) {
+        if (! ($builder instanceof Builder)) {
             throw new \Exception('Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable');
         }
         $endpoint = $builder->model->searchableAs();
@@ -297,12 +297,12 @@ class SolrEngine extends Engine
         // build any faceting
         $facetSet = $query->getFacetSet();
         $facetSet->setOptions($builder->facetOptions);
-        if (!empty($builder->facetFields)) {
+        if (! empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
             }
         }
-        if (!empty($builder->facetQueries)) {
+        if (! empty($builder->facetQueries)) {
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
@@ -314,7 +314,7 @@ class SolrEngine extends Engine
                 }
             }
         }
-        if (!empty($builder->facetPivots)) {
+        if (! empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
