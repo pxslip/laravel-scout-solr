@@ -25,6 +25,6 @@ trait Searchable
      */
     public static function search($query, $callback = null)
     {
-        return new Builder(new static, $query, $callback);
+        return new Builder(new static(), $query, $callback);
     }
 }
