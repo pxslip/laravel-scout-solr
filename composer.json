@@ -1,37 +1,37 @@
 {
-    "name": "pxslip/laravel-scout-solr",
-    "description": "A driver for the Laravel Scout search tools, using Apache Solr for the backend",
-    "type": "library",
-    "require": {
-        "php": "^7.0",
-        "laravel/scout": "*",
-        "illuminate/support": "~5.4",
-        "solarium/solarium": "^4.1"
-    },
-    "autoload": {
-        "psr-4": {
-            "Scout\\Solr\\": "src/",
-            "Scout\\Solr\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Scout\\Solr\\ScoutSolrServiceProvider"
-            ]
-        }
-    },
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Will Kruse",
-            "email": "wskruse@gmail.com"
-        }
-    ],
-    "require-dev": {
-        "squizlabs/php_codesniffer": "^3.2",
-        "vimeo/psalm": "^3.1"
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+  "name": "pxslip/laravel-scout-solr",
+  "description": "A driver for the Laravel Scout search tools, using Apache Solr for the backend",
+  "type": "library",
+  "require": {
+    "php": "^7.1",
+    "laravel/scout": ">=5.0",
+    "illuminate/support": ">=5.5",
+    "solarium/solarium": "^4.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Scout\\Solr\\": "src/",
+      "Scout\\Solr\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Scout\\Solr\\ScoutSolrServiceProvider"
+      ]
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Will Kruse",
+      "email": "wskruse@gmail.com"
+    }
+  ],
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^3.2",
+    "vimeo/psalm": "^3.1"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
 }
