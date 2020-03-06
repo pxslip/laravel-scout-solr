@@ -84,6 +84,10 @@ class SolrEngine extends Engine
                     foreach ($attrs as $key => $attr) {
                         $document->$key = $attr;
                     }
+                    $class = is_object($model) ? get_class($model) : false;
+                    if ($class) {
+                        $document->_modelClass = $class;
+                    }
 
                     return $document;
                 }
@@ -377,7 +381,7 @@ class SolrEngine extends Engine
             $end = $start + count($items);
             $query = collect(range($start + 1, $end))
                 ->map(function (int $index) use ($field, $mode): string {
-                    return "$field:%$mode$index%";
+                    return "$field:%$mode $index%";
                 })->implode(' OR ');
             $start = $end;
         }
@@ -390,5 +394,22 @@ class SolrEngine extends Engine
             'items' => array_merge($carryItems, $items),
             'placeholderStart' => $start,
         ];
+    }
+
+    /**
+     * Flush all of the model's records from the engine.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @return void
+     */
+    public function flush($model)
+    {
+        $class = is_object($model) ? get_class($model) : false;
+        if ($class) {
+            $update = $this->client->createUpdate();
+            $update->addDeleteQuery("_modelClass:$class");
+            $update->addCommit();
+            $this->client->update($update);
+        }
     }
 }
