@@ -2,9 +2,9 @@
 
 namespace Scout\Solr;
 
+use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 use Scout\Solr\Engines\SolrEngine;
-use Illuminate\Support\ServiceProvider;
 
 class ScoutSolrServiceProvider extends ServiceProvider
 {
