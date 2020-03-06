@@ -2,12 +2,13 @@
 
 namespace Scout\Solr\Engines;
 
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Database\Eloquent\Collection;
+use Laravel\Scout\Builder as BaseBuilder;
+use Laravel\Scout\Engines\Engine;
 use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
-use Laravel\Scout\Engines\Engine;
 use Solarium\Client as SolariumClient;
-use Laravel\Scout\Builder as BaseBuilder;
-use Illuminate\Database\Eloquent\Collection;
 
 class SolrEngine extends Engine
 {
@@ -27,18 +28,19 @@ class SolrEngine extends Engine
 
     /**
      * Constructor takes an initialized Solarium client as its only parameter.
+     *
      * @param SolariumClient $client The Solarium client to use
      */
-    public function __construct(SolariumClient $client)
+    public function __construct(SolariumClient $client, ConfigRepository $config)
     {
         $this->client = $client;
-        $this->enabled = config('solr.enabled', true);
+        $this->enabled = $config->get('solr.enabled', true);
     }
 
     /**
      * Update the given model in the index.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection  $models
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
     public function update($models)
@@ -253,7 +255,9 @@ class SolrEngine extends Engine
     protected function performSearch($builder, array $options = [])
     {
         if (! ($builder instanceof Builder)) {
-            throw new \Exception('Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable');
+            throw new \Exception(
+                'Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable'
+            );
         }
         $endpoint = $builder->model->searchableAs();
         // build the query string for the q parameter

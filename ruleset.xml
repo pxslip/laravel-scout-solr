@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<ruleset name="laravel-scout-solr">
+  <!-- Start with the PSR2 standard -->
+  <rule ref="PSR12" />
+
+  <!-- Override the PSR2 line length - set it to 100 characters instead -->
+  <rule ref="Generic.Files.LineLength">
+    <properties>
+      <property name="lineLimit" value="100"/>
+      <property name="absoluteLineLimit" value="0"/>
+    </properties>
+  </rule>
+</ruleset>
