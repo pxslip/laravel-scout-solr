@@ -27,6 +27,13 @@ class SolrEngine extends Engine
     private $enabled = true;
 
     /**
+     * Make the key for the meta values in the searchable array configurable
+     *
+     * @var string
+     */
+    private $metaKey = null;
+
+    /**
      * Constructor takes an initialized Solarium client as its only parameter.
      *
      * @param SolariumClient $client The Solarium client to use
@@ -35,6 +42,7 @@ class SolrEngine extends Engine
     {
         $this->client = $client;
         $this->enabled = $config->get('solr.enabled', true);
+        $this->metaKey = $config->get('solr.meta_key', 'meta');
     }
 
     /**
@@ -61,8 +69,8 @@ class SolrEngine extends Engine
                         return false;
                     }
                     // introduce functionality for solr meta data
-                    if (array_key_exists('meta', $attrs)) {
-                        $meta = $attrs['meta'];
+                    if (array_key_exists($this->metaKey, $attrs)) {
+                        $meta = $attrs[$this->metaKey];
                         // check if their are boosts to apply to the document
                         if (array_key_exists('boosts', $meta)) {
                             $boosts = $meta['boosts'];
@@ -78,7 +86,7 @@ class SolrEngine extends Engine
                                 }
                             }
                         }
-                        unset($attrs['meta']);
+                        unset($attrs[$this->metaKey]);
                     }
                     // leave this extra here to allow for modification if needed
                     foreach ($attrs as $key => $attr) {

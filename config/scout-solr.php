@@ -19,6 +19,8 @@ return [
      */
     'enabled' => env('SOLR_IMPORT', true),
 
+    'meta_key' => env('SOLR_META_KEY', 'meta'),
+
     /*
     |--------------------------------------------------------------------------
     | Solr Endpoint
