@@ -27,7 +27,7 @@ class SolrEngine extends Engine
     private $enabled = true;
 
     /**
-     * Make the key for the meta values in the searchable array configurable
+     * Make the key for the meta values in the searchable array configurable.
      *
      * @var string
      */
