@@ -389,7 +389,7 @@ class SolrEngine extends Engine
             $end = $start + count($items);
             $query = collect(range($start + 1, $end))
                 ->map(function (int $index) use ($field, $mode): string {
-                    return "$field:%$mode $index%";
+                    return "{$field}:%{$mode}{$index}%";
                 })->implode(' OR ');
             $start = $end;
         }
