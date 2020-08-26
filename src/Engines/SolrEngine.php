@@ -345,6 +345,13 @@ class SolrEngine extends Engine
         if (array_key_exists('start', $options)) {
             $query->setStart($options['start']);
         }
+        // add ordering to the search
+        if ($builder->orders) {
+            foreach ($builder->orders as $sort) {
+                $query->addSort($sort['column'], $sort['direction']);
+            }
+        }
+        // if a row limit is set, include that
         if ($builder->limit) {
             $query->setRows($builder->limit);
         }
