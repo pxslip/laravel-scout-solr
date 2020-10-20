@@ -2,8 +2,6 @@
 
 namespace Scout\Solr;
 
-use Scout\Solr\Engines\SolrEngine;
-
 trait Searchable
 {
     use \Laravel\Scout\Searchable;
@@ -29,7 +27,6 @@ trait Searchable
     {
         return new Builder(new static(), $query, $callback);
     }
-
 
     public static function escapeSolrQueryAsTerm($query): string
     {
