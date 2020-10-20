@@ -19,6 +19,8 @@ class SolrEngine extends Engine
      */
     private $client;
 
+    private $helper;
+
     /**
      * Is searching/updating disabled for this instance.
      *
@@ -41,6 +43,7 @@ class SolrEngine extends Engine
     public function __construct(SolariumClient $client, ConfigRepository $config)
     {
         $this->client = $client;
+        $this->helper = $client->createSelect()->getHelper();
         $this->enabled = $config->get('solr.enabled', true);
         $this->metaKey = $config->get('solr.meta_key', 'meta');
     }
@@ -426,5 +429,27 @@ class SolrEngine extends Engine
             $update->addCommit();
             $this->client->update($update);
         }
+    }
+
+    /**
+     * Ensure the query term is solr safe
+     *
+     * @param string $query
+     * @return string
+     */
+    public function escapeQueryAsTerm(string $query): string
+    {
+        return $this->helper->escapeTerm($query);
+    }
+
+    /**
+     * Ensure the query phrase is solr safe
+     *
+     * @param string $query
+     * @return string
+     */
+    public function escapeQueryAsPhrase(string $query): string
+    {
+        return $this->helper->escapePhrase($query);
     }
 }
