@@ -432,7 +432,7 @@ class SolrEngine extends Engine
     }
 
     /**
-     * Ensure the query term is solr safe
+     * Ensure the query term is solr safe.
      *
      * @param string $query
      * @return string
@@ -443,7 +443,7 @@ class SolrEngine extends Engine
     }
 
     /**
-     * Ensure the query phrase is solr safe
+     * Ensure the query phrase is solr safe.
      *
      * @param string $query
      * @return string
