@@ -27,4 +27,14 @@ trait Searchable
     {
         return new Builder(new static(), $query, $callback);
     }
+
+    public static function escapeSolrQueryAsTerm($query): string
+    {
+        return app(EngineManager::class)->engine()->escapeQueryAsTerm($query);
+    }
+
+    public static function escapeSolrQueryAsPhrase($query): string
+    {
+        return app(EngineManager::class)->engine()->escapeQueryAsPhrase($query);
+    }
 }
