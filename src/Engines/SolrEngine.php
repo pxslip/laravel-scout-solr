@@ -408,7 +408,7 @@ class SolrEngine extends Engine
 
         return [
             'query' => empty($carryQuery) ?
-                sprintf('(%s)', $query) : sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
+                sprintf('(%s)', $query) : sprintf('%s %s %s', $carryQuery, $data['boolean'], $query),
             'items' => array_merge($carryItems, $items),
             'placeholderStart' => $start,
         ];
