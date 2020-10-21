@@ -2,6 +2,8 @@
 
 namespace Scout\Solr;
 
+use Laravel\Scout\EngineManager;
+
 trait Searchable
 {
     use \Laravel\Scout\Searchable;
