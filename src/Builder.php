@@ -60,6 +60,13 @@ class Builder extends ScoutBuilder
     private $useExtendedDismax = false;
 
     /**
+     * The offset to start the search at.
+     *
+     * @var int
+     */
+    private $start = null;
+
+    /**
      * Add a simple key=value filter.
      *
      * @param string|Closure|array $field The field to compare against
@@ -310,5 +317,23 @@ class Builder extends ScoutBuilder
     public function isDismax()
     {
         return $this->useDismax;
+    }
+
+    /**
+     * Set the start offset for this query.
+     *
+     * @param int $value
+     * @return self
+     */
+    public function setStart(int $value): self
+    {
+        $this->start = $value;
+
+        return $this;
+    }
+
+    public function getStart(): int
+    {
+        return $this->start;
     }
 }
