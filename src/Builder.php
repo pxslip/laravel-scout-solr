@@ -60,7 +60,7 @@ class Builder extends ScoutBuilder
     private $useExtendedDismax = false;
 
     /**
-     * The offset to start the search at
+     * The offset to start the search at.
      *
      * @var int
      */
@@ -320,7 +320,7 @@ class Builder extends ScoutBuilder
     }
 
     /**
-     * Set the start offset for this query
+     * Set the start offset for this query.
      *
      * @param int $value
      * @return self
@@ -328,6 +328,7 @@ class Builder extends ScoutBuilder
     public function setStart(int $value): self
     {
         $this->start = $value;
+
         return $this;
     }
 

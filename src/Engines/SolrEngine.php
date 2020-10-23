@@ -347,7 +347,7 @@ class SolrEngine extends Engine
         // allow for pagination here
         if ($builder->getStart() !== null) {
             $query->setStart($builder->getStart());
-        } else if (array_key_exists('start', $options)) {
+        } elseif (array_key_exists('start', $options)) {
             $query->setStart($options['start']);
         }
         // add ordering to the search
