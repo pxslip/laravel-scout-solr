@@ -334,6 +334,6 @@ class Builder extends ScoutBuilder
 
     public function getStart(): int
     {
-        return $this->start;
+        return $this->start ?? 0;
     }
 }
