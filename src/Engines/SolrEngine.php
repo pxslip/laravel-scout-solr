@@ -398,34 +398,36 @@ class SolrEngine extends Engine
         $carryItems = $carry['items'] ?? [];
         $start = $carry['placeholderStart'] ?? 0;
 
-        if ($data['field'] === 'nested') {
-            // handle the nested queries recursively
-            $nested = collect($data['queries'])->reduce([$this, 'buildFilter'], ['placeholderStart' => $start]);
-            $query = $nested['query'];
-            $items = $nested['items'];
-            $start = $nested['placeholderStart'];
-        } else {
-            $field = $data['field'];
-            $mode = $data['mode'];
-            $items = is_array($data['query']) ? $data['query'] : [$data['query']];
-            $end = $start + count($items);
-            $query = collect(range($start + 1, $end))
-                ->map(function (int $index) use ($field, $mode): string {
-                    return "{$field}:%{$mode}{$index}%";
-                })
-                ->implode(' OR ');
-            $start = $end;
+        if (count($data) > 0) {
+            if ($data['field'] === 'nested') {
+                // handle the nested queries recursively
+                $nested = collect($data['queries'])->reduce([$this, 'buildFilter'], ['placeholderStart' => $start]);
+                $query = $nested['query'];
+                $items = $nested['items'];
+                $start = $nested['placeholderStart'];
+            } else {
+                $field = $data['field'];
+                $mode = $data['mode'];
+                $items = is_array($data['query']) ? $data['query'] : [$data['query']];
+                $end = $start + count($items);
+                $query = collect(range($start + 1, $end))
+                    ->map(function (int $index) use ($field, $mode): string {
+                        return "{$field}:%{$mode}{$index}%";
+                    })
+                    ->implode(' OR ');
+                $start = $end;
+            }
+    
+            $carryQuery = $carry['query'] ?? '';
+    
+            return [
+                'query' => empty($carryQuery)
+                    ? sprintf('(%s)', $query)
+                    : sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
+                'items' => array_merge($carryItems, $items),
+                'placeholderStart' => $start,
+            ];
         }
-
-        $carryQuery = $carry['query'] ?? '';
-
-        return [
-            'query' => empty($carryQuery)
-                ? sprintf('(%s)', $query)
-                : sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
-            'items' => array_merge($carryItems, $items),
-            'placeholderStart' => $start,
-        ];
     }
 
     /**
