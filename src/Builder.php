@@ -267,7 +267,7 @@ class Builder extends ScoutBuilder
 
     public function hasBoosts(): bool
     {
-        return ! empty($this->boostFields);
+        return !empty($this->boostFields);
     }
 
     /**

@@ -16,7 +16,7 @@ class ScoutSolrServiceProvider extends ServiceProvider
         });
         // publish the solr.php config file when the user publishes this provider
         $this->publishes([
-            __DIR__.'/../config/scout-solr.php' => config_path('scout-solr.php'),
+            __DIR__ . '/../config/scout-solr.php' => config_path('scout-solr.php'),
         ]);
     }
 
@@ -28,6 +28,6 @@ class ScoutSolrServiceProvider extends ServiceProvider
                 'endpoint' => config('solr.endpoints'),
             ]);
         });
-        $this->mergeConfigFrom(__DIR__.'/../config/scout-solr.php', 'scout-solr');
+        $this->mergeConfigFrom(__DIR__ . '/../config/scout-solr.php', 'scout-solr');
     }
 }

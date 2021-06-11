@@ -393,7 +393,8 @@ class SolrEngine extends Engine
      * @param array $where The nested query array to compile
      * @return string
      */
-    public function compileNestedQuery($where) {
+    public function compileNestedQuery($where)
+    {
         $first = true;
         $query = '';
         foreach ($where['queries'] as $subWhere) {
