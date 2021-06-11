@@ -13,6 +13,10 @@ use Solarium\Client as SolariumClient;
 
 class SolrEngine extends Engine
 {
+
+    public const NESTED_QUERY = '_nested_';
+    public const SIMPLE_QUERY = '_simple_';
+
     /**
      * The Solarium client we are currently using.
      *
@@ -315,13 +319,23 @@ class SolrEngine extends Engine
         $query->setQuery($queryString);
 
         // get the filter query
-        // TODO: this is highly inefficient due to the unique key? Or will the query still be cached?
-        $filterQuery = $this->filters($builder);
-        $filterQuery->each(function (array $fq) use ($query) {
-            $query->createFilterQuery(md5($fq['query']))->setQuery($fq['query'], $fq['items']);
+        $filters = [];
+        // loop through and merge any `OR` queries into one
+        foreach ($builder->wheres as $where) {
+            if ($where['type'] === static::NESTED_QUERY) {
+                $queryString = $this->compileNestedQuery($where);
+            } else if ($where['type'] === static::SIMPLE_QUERY) {
+                $queryString = $this->helper->assemble($where['query'], $where['bindings']);
+            }
+            if (!empty($filters) && $where['boolean'] === 'OR') {
+                $previous = array_pop($filters);
+                $queryString = "{$previous} OR {$queryString}";
+            }
+            $filters[] = $queryString;
+        }
+        collect($filters)->each(function (string $fq) use ($query) {
+            $query->createFilterQuery(md5($fq))->setQuery($fq);
         });
-        // $query->createFilterQuery(md5($filterQuery['query']))->setQuery($filterQuery['query'], $filterQuery['items']);
-
         // build any faceting
         $facetSet = $query->getFacetSet();
         $facetSet->setOptions($builder->facetOptions);
@@ -338,7 +352,7 @@ class SolrEngine extends Engine
                         $facet->createQuery("$field-multiquery-$i", $query);
                     }
                 } else {
-                    $facetSet->createQuery("$field-query")->setQuery("$field:{$queries[0]}");
+                    $facetSet->createFacetQuery("$field-query")->setQuery("$field:{$queries[0]}");
                 }
             }
         }
@@ -374,60 +388,28 @@ class SolrEngine extends Engine
     }
 
     /**
-     * Convert a set of wheres (key => value pairs) into a filter query for Solr.
+     * Takes a nested set of queries and turns it into a single query string (pre-compiled)
      *
-     * @param Builder $builder
-     *
-     * @return SupportCollection The filter queries built from the builder wheres
+     * @param array $where The nested query array to compile
+     * @return string
      */
-    protected function filters(Builder $builder): SupportCollection
-    {
-        $filters = collect($builder->wheres)->map([$this, 'buildFilter']);
-        return $filters;
-    }
-
-    /**
-     * build an individual filter.
-     *
-     * @param array  $carry The current query string to pass to fq
-     * @param array  $data
-     * @return array
-     */
-    public function buildFilter(array $data): array
-    {
-        $carryItems = $carry['items'] ?? [];
-        $start = $carry['placeholderStart'] ?? 0;
-
-        if (count($data) > 0) {
-            if ($data['field'] === 'nested') {
-                // handle the nested queries recursively
-                $nested = collect($data['queries'])->reduce([$this, 'buildFilter'], ['placeholderStart' => $start]);
-                $query = $nested['query'];
-                $items = $nested['items'];
-                $start = $nested['placeholderStart'];
+    public function compileNestedQuery($where) {
+        $first = true;
+        $query = '';
+        foreach ($where['queries'] as $subWhere) {
+            if ($subWhere['type'] === static::NESTED_QUERY) {
+                $queryPart = call_user_func([$this, 'compileNestedQuery'], $subWhere);
             } else {
-                $field = $data['field'];
-                $mode = $data['mode'];
-                $items = is_array($data['query']) ? $data['query'] : [$data['query']];
-                $end = $start + count($items);
-                $query = collect(range($start + 1, $end))
-                    ->map(function (int $index) use ($field, $mode): string {
-                        return "{$field}:%{$mode}{$index}%";
-                    })
-                    ->implode(' OR ');
-                $start = $end;
+                $queryPart = $this->helper->assemble($subWhere['query'], $subWhere['bindings']);
             }
-    
-            $carryQuery = $carry['query'] ?? '';
-    
-            return [
-                'query' => empty($carryQuery)
-                    ? sprintf('(%s)', $query)
-                    : sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
-                'items' => array_merge($carryItems, $items),
-                'placeholderStart' => $start,
-            ];
+            if (!$first) {
+                $query .= " {$subWhere['boolean']} $queryPart";
+            } else {
+                $query = $queryPart;
+                $first = false;
+            }
         }
+        return $query;
     }
 
     /**
