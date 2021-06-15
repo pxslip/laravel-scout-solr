@@ -19,7 +19,7 @@
   },
   "homepage": "https://pxslip.github.io/laravel-scout-solr",
   "devDependencies": {
-    "eslint": "^5.6.0",
-    "vuepress": "^1.5.3"
+    "eslint": "^7.28.0",
+    "vuepress": "^1.8.2"
   }
 }
