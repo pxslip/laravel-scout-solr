@@ -4,6 +4,7 @@ namespace Scout\Solr\Engines;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 use Laravel\Scout\Builder as BaseBuilder;
 use Laravel\Scout\Engines\Engine;
 use Scout\Solr\Builder;
@@ -12,6 +13,10 @@ use Solarium\Client as SolariumClient;
 
 class SolrEngine extends Engine
 {
+
+    public const NESTED_QUERY = '_nested_';
+    public const SIMPLE_QUERY = '_simple_';
+
     /**
      * The Solarium client we are currently using.
      *
@@ -59,50 +64,52 @@ class SolrEngine extends Engine
         if ($this->enabled) {
             $model = $models->first();
             $update = $this->client->createUpdate();
-            $documents = $models->map(
-                /**
-                 * @return false|\Solarium\QueryType\Update\Query\Document\Document
-                 */
-                function ($model) use ($update) {
-                    /** @var \Solarium\QueryType\Update\Query\Document\Document */
-                    $document = $update->createDocument();
-                    /** @var Searchable $model */
-                    $attrs = $model->toSearchableArray();
-                    if (empty($attrs)) {
-                        return false;
-                    }
-                    // introduce functionality for solr meta data
-                    if (array_key_exists($this->metaKey, $attrs)) {
-                        $meta = $attrs[$this->metaKey];
-                        // check if their are boosts to apply to the document
-                        if (array_key_exists('boosts', $meta)) {
-                            $boosts = $meta['boosts'];
-                            if (array_key_exists('document', $boosts)) {
-                                if (is_float($boosts['document'])) {
-                                    $document->setBoost($boosts['document']);
-                                }
-                                unset($boosts['document']);
-                            }
-                            foreach ($boosts as $field => $boost) {
-                                if (is_float($boost)) {
-                                    $document->setFieldBoost($field, $boost);
-                                }
-                            }
+            $documents = $models
+                ->map(
+                    /**
+                     * @return false|\Solarium\QueryType\Update\Query\Document\Document
+                     */
+                    function ($model) use ($update) {
+                        /** @var \Solarium\QueryType\Update\Query\Document\Document */
+                        $document = $update->createDocument();
+                        /** @var Searchable $model */
+                        $attrs = $model->toSearchableArray();
+                        if (empty($attrs)) {
+                            return false;
                         }
-                        unset($attrs[$this->metaKey]);
-                    }
-                    // leave this extra here to allow for modification if needed
-                    foreach ($attrs as $key => $attr) {
-                        $document->$key = $attr;
-                    }
-                    $class = is_object($model) ? get_class($model) : false;
-                    if ($class) {
-                        $document->_modelClass = $class;
-                    }
+                        // introduce functionality for solr meta data
+                        if (array_key_exists($this->metaKey, $attrs)) {
+                            $meta = $attrs[$this->metaKey];
+                            // check if their are boosts to apply to the document
+                            if (array_key_exists('boosts', $meta)) {
+                                $boosts = $meta['boosts'];
+                                if (array_key_exists('document', $boosts)) {
+                                    if (is_float($boosts['document'])) {
+                                        $document->setBoost($boosts['document']);
+                                    }
+                                    unset($boosts['document']);
+                                }
+                                foreach ($boosts as $field => $boost) {
+                                    if (is_float($boost)) {
+                                        $document->setFieldBoost($field, $boost);
+                                    }
+                                }
+                            }
+                            unset($attrs[$this->metaKey]);
+                        }
+                        // leave this extra here to allow for modification if needed
+                        foreach ($attrs as $key => $attr) {
+                            $document->$key = $attr;
+                        }
+                        $class = is_object($model) ? get_class($model) : false;
+                        if ($class) {
+                            $document->_modelClass = $class;
+                        }
 
-                    return $document;
-                }
-            )->filter();
+                        return $document;
+                    }
+                )
+                ->filter();
             $update->addDocuments($documents->filter()->toArray());
             $update->addCommit();
             $this->client->update($update, $model->searchableAs());
@@ -139,7 +146,7 @@ class SolrEngine extends Engine
      */
     public function search(BaseBuilder $builder)
     {
-        if (! $this->enabled) {
+        if (!$this->enabled) {
             return Collection::make();
         }
 
@@ -176,7 +183,9 @@ class SolrEngine extends Engine
     public function mapIds($results)
     {
         // how do we get the pk without a model?
-        return collect($results)->pluck('id')->values();
+        return collect($results)
+            ->pluck('id')
+            ->values();
     }
 
     /**
@@ -207,7 +216,8 @@ class SolrEngine extends Engine
         }
         // TODO: (cont'd) Because attaching facets to every model feels kludgy
         // solution is to implement a custom collection class that can hold the facets
-        $models = $model->whereIn($model->getKeyName(), $ids)
+        $models = $model
+            ->whereIn($model->getKeyName(), $ids)
             ->orderByRaw($this->orderQuery($model, $ids))
             ->get()
             ->map(function ($item) use ($facets) {
@@ -269,7 +279,7 @@ class SolrEngine extends Engine
      */
     protected function performSearch($builder, array $options = [])
     {
-        if (! ($builder instanceof Builder)) {
+        if (!($builder instanceof Builder)) {
             throw new \Exception(
                 'Your model must use the Scout\\Solr\\Searchable trait in place of Laravel\\Scout\\Searchable'
             );
@@ -283,12 +293,12 @@ class SolrEngine extends Engine
                         // there are multiple search queries for this term
                         $query = [];
                         foreach ($item as $query) {
-                            $query[] = (is_numeric($key)) ? $query : "$key:$query";
+                            $query[] = is_numeric($key) ? $query : "$key:$query";
                         }
 
                         return implode(' ', $query);
                     } else {
-                        return (is_numeric($key)) ? $item : "$key:$item";
+                        return is_numeric($key) ? $item : "$key:$item";
                     }
                 })
                 ->filter()
@@ -309,19 +319,32 @@ class SolrEngine extends Engine
         $query->setQuery($queryString);
 
         // get the filter query
-        // TODO: this is highly inefficient due to the unique key? Or will the query still be cached?
-        $filterQuery = $this->filters($builder);
-        $query->createFilterQuery(md5($filterQuery['query']))->setQuery($filterQuery['query'], $filterQuery['items']);
-
+        $filters = [];
+        // loop through and merge any `OR` queries into one
+        foreach ($builder->wheres as $where) {
+            if ($where['type'] === static::NESTED_QUERY) {
+                $queryString = $this->compileNestedQuery($where);
+            } else if ($where['type'] === static::SIMPLE_QUERY) {
+                $queryString = $this->helper->assemble($where['query'], $where['bindings']);
+            }
+            if (!empty($filters) && $where['boolean'] === 'OR') {
+                $previous = array_pop($filters);
+                $queryString = "{$previous} OR {$queryString}";
+            }
+            $filters[] = $queryString;
+        }
+        collect($filters)->each(function (string $fq) use ($query) {
+            $query->createFilterQuery(md5($fq))->setQuery($fq);
+        });
         // build any faceting
         $facetSet = $query->getFacetSet();
         $facetSet->setOptions($builder->facetOptions);
-        if (! empty($builder->facetFields)) {
+        if (!empty($builder->facetFields)) {
             foreach ($builder->facetFields as $field) {
                 $facetSet->createFacetField("$field-field")->setField($field);
             }
         }
-        if (! empty($builder->facetQueries)) {
+        if (!empty($builder->facetQueries)) {
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
@@ -329,11 +352,11 @@ class SolrEngine extends Engine
                         $facet->createQuery("$field-multiquery-$i", $query);
                     }
                 } else {
-                    $facetSet->createQuery("$field-query")->setQuery("$field:{$queries[0]}");
+                    $facetSet->createFacetQuery("$field-query")->setQuery("$field:{$queries[0]}");
                 }
             }
         }
-        if (! empty($builder->facetPivots)) {
+        if (!empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
@@ -365,55 +388,29 @@ class SolrEngine extends Engine
     }
 
     /**
-     * Convert a set of wheres (key => value pairs) into a filter query for Solr.
+     * Takes a nested set of queries and turns it into a single query string (pre-compiled)
      *
-     * @param Builder $builder
-     *
-     * @return string[] The filter queries built from the builder wheres
+     * @param array $where The nested query array to compile
+     * @return string
      */
-    protected function filters(Builder $builder)
+    public function compileNestedQuery($where)
     {
-        return collect($builder->wheres)->reduce([$this, 'buildFilter']);
-    }
-
-    /**
-     * build an individual filter.
-     *
-     * @param array  $carry The current query string to pass to fq
-     * @param array  $data
-     * @return array
-     */
-    public function buildFilter(array $carry = null, array $data): array
-    {
-        $carryItems = $carry['items'] ?? [];
-        $start = $carry['placeholderStart'] ?? 0;
-
-        if ($data['field'] === 'nested') {
-            // handle the nested queries recursively
-            $nested = collect($data['queries'])->reduce([$this, 'buildFilter'], ['placeholderStart' => $start]);
-            $query = $nested['query'];
-            $items = $nested['items'];
-            $start = $nested['placeholderStart'];
-        } else {
-            $field = $data['field'];
-            $mode = $data['mode'];
-            $items = is_array($data['query']) ? $data['query'] : [$data['query']];
-            $end = $start + count($items);
-            $query = collect(range($start + 1, $end))
-                ->map(function (int $index) use ($field, $mode): string {
-                    return "{$field}:%{$mode}{$index}%";
-                })->implode(' OR ');
-            $start = $end;
+        $first = true;
+        $query = '';
+        foreach ($where['queries'] as $subWhere) {
+            if ($subWhere['type'] === static::NESTED_QUERY) {
+                $queryPart = call_user_func([$this, 'compileNestedQuery'], $subWhere);
+            } else {
+                $queryPart = $this->helper->assemble($subWhere['query'], $subWhere['bindings']);
+            }
+            if (!$first) {
+                $query .= " {$subWhere['boolean']} $queryPart";
+            } else {
+                $query = $queryPart;
+                $first = false;
+            }
         }
-
-        $carryQuery = $carry['query'] ?? '';
-
-        return [
-            'query' => empty($carryQuery) ?
-                sprintf('(%s)', $query) : sprintf('%s %s (%s)', $carryQuery, $data['boolean'], $query),
-            'items' => array_merge($carryItems, $items),
-            'placeholderStart' => $start,
-        ];
+        return $query;
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Scout\Solr;
 
 use Closure;
 use Laravel\Scout\Builder as ScoutBuilder;
+use Scout\Solr\Engines\SolrEngine;
 
 /**
  * Extend the Scout Builder class to allow for more complicated queries against Solr.
@@ -67,62 +68,51 @@ class Builder extends ScoutBuilder
     private $start = null;
 
     /**
-     * Add a simple key=value filter.
+     * Add a filter query, uses the solarium placeholder syntax
+     * 
+     * @see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/
      *
-     * @param string|Closure|array $field The field to compare against
-     * @param mixed                $query The value to compare to
-     * @param string               $boolean 'AND' or 'OR'
-     * @param char                 $mode Mode to use for placeholder (see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/).
+     * @param string|Closure $query The query string
+     * @param array $bindings Any bindings to placeholders
+     * @param string $boolean 'AND' or 'OR'
      *
-     * @return self   $this to allow for fluent queries
+     * @return self $this to allow for fluent queries
      */
-    public function where($field, $query = null, $boolean = 'AND', $mode = 'L')
+    public function where($query, $bindings = [], $boolean = 'AND')
     {
-        if (is_array($field)) {
-            // we're trying to add a nested query via array
-            $this->wheres[] = [
-                'field' => 'nested',
-                'queries' => $field,
-                'boolean' => $boolean,
-                'mode' => $mode,
-            ];
-
-            return $this;
-        }
-
-        if ($field instanceof Closure) {
+        if ($query instanceof Closure) {
             // let's make it possible to do fluent nested queries
-            call_user_func($field, $query = $this->builderForNested());
+            call_user_func($query, $query = $this->builderForNested());
             $this->wheres[] = [
-                'field' => 'nested',
+                'type' => SolrEngine::NESTED_QUERY,
                 'queries' => $query->wheres,
                 'boolean' => $boolean,
-                'mode' => $mode,
             ];
-
-            return $this;
+        } else {
+            $this->wheres[] = [
+                'type' => SolrEngine::SIMPLE_QUERY,
+                'query' => $query,
+                'bindings' => $bindings,
+                'boolean' => $boolean,
+            ];
         }
-        $this->wheres[] = [
-            'field' => $field,
-            'query' => $query,
-            'boolean' => $boolean,
-            'mode' => $mode,
-        ];
 
         return $this;
     }
 
     /**
-     * Add a filter query separated by OR.
+     * Add a filter query separated by OR. Uses the solarium placeholder syntax
+     * 
+     * @see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/
      *
-     * @param string|Closure|array $field the name of the field to filter against
-     * @param string               $query the query to filter using
+     * @param string|Closure $query the name of the field to filter against
+     * @param array $bindings The value bindings to use
      *
-     * @return self   to allow for fluent queries
+     * @return self to allow for fluent queries
      */
-    public function orWhere($field, $query = null)
+    public function orWhere($query, $bindings = [])
     {
-        return $this->where($field, $query, 'OR');
+        return $this->where($query, $bindings, 'OR');
     }
 
     /**
@@ -131,15 +121,16 @@ class Builder extends ScoutBuilder
      * @param string $field The name of the field to filter against
      * @param string $low   The low value of the range
      * @param string $high  The high value of the range
-     * @param string               $boolean 'AND' or 'OR'
+     * @param string $mode The placeholder syntax mode
+     * @param string $boolean 'AND' or 'OR'
      *
      * @return self          $this to allow for fluent queries
      */
-    public function whereRange(string $field, string $low, string $high, $boolean = 'AND')
+    public function whereRange(string $field, string $low, string $high, string $mode = 'L', string $boolean = 'AND')
     {
-        $query = "[$low TO $high]";
+        $query = "{$field}:[%{$mode}1% TO %{$mode}2%]";
 
-        return $this->where($field, $query, $boolean);
+        return $this->where($query, [$low, $high], $boolean);
     }
 
     /**
@@ -276,7 +267,7 @@ class Builder extends ScoutBuilder
 
     public function hasBoosts(): bool
     {
-        return ! empty($this->boostFields);
+        return !empty($this->boostFields);
     }
 
     /**
