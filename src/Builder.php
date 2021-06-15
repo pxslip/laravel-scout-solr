@@ -110,7 +110,7 @@ class Builder extends ScoutBuilder
      *
      * @return self to allow for fluent queries
      */
-    public function orWhere($query, $bindings)
+    public function orWhere($query, $bindings = [])
     {
         return $this->where($query, $bindings, 'OR');
     }
