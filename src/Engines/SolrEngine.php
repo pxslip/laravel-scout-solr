@@ -9,6 +9,7 @@ use Laravel\Scout\Builder as BaseBuilder;
 use Laravel\Scout\Engines\Engine;
 use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
+use Scout\Solr\SolrCollection;
 use Solarium\Client as SolariumClient;
 
 class SolrEngine extends Engine
@@ -225,6 +226,8 @@ class SolrEngine extends Engine
 
                 return $item;
             });
+        // convert to a solr collection that wraps the eloquent one
+        $models = new SolrCollection($results, $models);
 
         return $models;
     }
