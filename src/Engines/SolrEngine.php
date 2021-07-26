@@ -215,19 +215,19 @@ class SolrEngine extends Engine
         } else {
             $facets = [];
         }
+
+        $spellcheck = $results->getSpellcheck();
         // TODO: (cont'd) Because attaching facets to every model feels kludgy
         // solution is to implement a custom collection class that can hold the facets
         $models = $model
             ->whereIn($model->getKeyName(), $ids)
             ->orderByRaw($this->orderQuery($model, $ids))
             ->get()
-            ->map(function ($item) use ($facets) {
+            ->map(function ($item) use ($facets, $spellcheck) {
                 $item->facets = $facets;
-
+                $item->spellcheck = $spellcheck;
                 return $item;
             });
-        // convert to a solr collection that wraps the eloquent one
-        $models = new SolrCollection($results, $models);
 
         return $models;
     }
