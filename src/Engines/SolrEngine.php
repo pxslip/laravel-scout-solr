@@ -329,7 +329,7 @@ class SolrEngine extends Engine
             }
             if (!empty($filters) && $where['boolean'] === 'OR') {
                 $previous = array_pop($filters);
-                $queryString = "{$previous} OR {$queryString}";
+                $queryString = "{$previous} OR ({$queryString})";
             }
             $filters[] = $queryString;
         }
