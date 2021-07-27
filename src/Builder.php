@@ -68,6 +68,13 @@ class Builder extends ScoutBuilder
     private $start = null;
 
     /**
+     * The boost query to apply to the query.
+     *
+     * @var array
+     */
+    private $boostQuery = [];
+
+    /**
      * Add a filter query, uses the solarium placeholder syntax
      * 
      * @see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/
@@ -263,6 +270,28 @@ class Builder extends ScoutBuilder
             ->map(function ($boost, $field): string {
                 return "$field^$boost";
             });
+    }
+
+    /**
+     * Set a boost query on the query being built.
+     *
+     * @param string $query
+     * @param array $values
+     * @return void
+     */
+    public function boostQuery(string $query, array $bindings)
+    {
+        $this->selectQueryParser();
+        $this->boostQuery[] = [
+            'query' => $query,
+            'bindings' => $bindings,
+        ];
+        return $this;
+    }
+
+    public function getBoostQuery(): array
+    {
+        return $this->boostQuery;
     }
 
     public function hasBoosts(): bool
