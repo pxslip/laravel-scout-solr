@@ -321,6 +321,7 @@ class SolrEngine extends Engine
             $queryString = $builder->query;
         }
         $query = $this->client->createSelect();
+
         if ($builder->isDismax()) {
             $dismax = $query->getDisMax();
         } elseif ($builder->isEDismax()) {
@@ -362,8 +363,8 @@ class SolrEngine extends Engine
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
-                    foreach ($queries as $i => $query) {
-                        $facet->createQuery("$field-multiquery-$i", $query);
+                    foreach ($queries as $i => $fQuery) {
+                        $facet->createQuery("$field-multiquery-$i", $fQuery);
                     }
                 } else {
                     $facetSet->createFacetQuery("$field-query")->setQuery("$field:{$queries[0]}");
@@ -374,6 +375,12 @@ class SolrEngine extends Engine
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
+        }
+
+        // set up spellchecking
+        if ($builder->getUseSpellcheck()) {
+            $spellcheck = $query->getSpellcheck();
+            $spellcheck->setOptions($builder->getSpellcheckOptions());
         }
 
         // Set the boost fields

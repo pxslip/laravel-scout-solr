@@ -400,6 +400,11 @@ class Builder extends ScoutBuilder
         return $this->useSpellcheck;
     }
 
+    public function getSpellcheckOptions(): array
+    {
+        return $this->spellcheckOptions;
+    }
+
     /**
      * If enabled will automatically re-search the index for any collated searches returned by the spellcheck component
      *
