@@ -30,13 +30,36 @@ trait Searchable
         return new Builder(new static(), $query, $callback);
     }
 
-    public static function escapeSolrQueryAsTerm($query): string
+    /**
+     * Give the model access to the solr query escaper for terms.
+     *
+     * @param string $query
+     * @return string
+     */
+    public static function escapeSolrQueryAsTerm(string $query): string
     {
         return app(EngineManager::class)->engine()->escapeQueryAsTerm($query);
     }
 
-    public static function escapeSolrQueryAsPhrase($query): string
+    /**
+     * Give the model access to the solr query escaper for phrases.
+     *
+     * @param string $query
+     * @return string
+     */
+    public static function escapeSolrQueryAsPhrase(string $query): string
     {
         return app(EngineManager::class)->engine()->escapeQueryAsPhrase($query);
+    }
+
+    /**
+     * Override the newCollection method on Model to use the SolrCollection class if no collection is set by the Model.
+     *
+     * @param array $models
+     * @return SolrCollection
+     */
+    public function newCollection(array $models = [])
+    {
+        return new SolrCollection($models);
     }
 }

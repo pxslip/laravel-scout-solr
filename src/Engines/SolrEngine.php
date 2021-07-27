@@ -4,12 +4,12 @@ namespace Scout\Solr\Engines;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Collection as SupportCollection;
 use Laravel\Scout\Builder as BaseBuilder;
 use Laravel\Scout\Engines\Engine;
 use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
 use Solarium\Client as SolariumClient;
+use Solarium\Core\Query\Helper;
 
 class SolrEngine extends Engine
 {
@@ -24,6 +24,11 @@ class SolrEngine extends Engine
      */
     private $client;
 
+    /**
+     * Access to the query helper.
+     *
+     * @var Helper
+     */
     private $helper;
 
     /**
@@ -39,6 +44,13 @@ class SolrEngine extends Engine
      * @var string
      */
     private $metaKey = null;
+
+    /**
+     * Store the last result created allowing us to attach it to collection results.
+     *
+     * @var \Solarium\QueryType\Select\Result\Result
+     */
+    private $lastSelectResult;
 
     /**
      * Constructor takes an initialized Solarium client as its only parameter.
@@ -214,15 +226,17 @@ class SolrEngine extends Engine
         } else {
             $facets = [];
         }
+
+        $spellcheck = $results->getSpellcheck();
         // TODO: (cont'd) Because attaching facets to every model feels kludgy
         // solution is to implement a custom collection class that can hold the facets
         $models = $model
             ->whereIn($model->getKeyName(), $ids)
             ->orderByRaw($this->orderQuery($model, $ids))
             ->get()
-            ->map(function ($item) use ($facets) {
+            ->map(function ($item) use ($facets, $spellcheck) {
                 $item->facets = $facets;
-
+                $item->spellcheck = $spellcheck;
                 return $item;
             });
 
@@ -307,6 +321,7 @@ class SolrEngine extends Engine
             $queryString = $builder->query;
         }
         $query = $this->client->createSelect();
+
         if ($builder->isDismax()) {
             $dismax = $query->getDisMax();
         } elseif ($builder->isEDismax()) {
@@ -348,8 +363,8 @@ class SolrEngine extends Engine
             foreach ($builder->facetQueries as $field => $queries) {
                 if (count($queries) > 1) {
                     $facet = $facetSet->createFacetMultiQuery("$field-multiquery");
-                    foreach ($queries as $i => $query) {
-                        $facet->createQuery("$field-multiquery-$i", $query);
+                    foreach ($queries as $i => $fQuery) {
+                        $facet->createQuery("$field-multiquery-$i", $fQuery);
                     }
                 } else {
                     $facetSet->createFacetQuery("$field-query")->setQuery("$field:{$queries[0]}");
@@ -360,6 +375,12 @@ class SolrEngine extends Engine
             foreach ($builder->facetPivots as $fields) {
                 $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
             }
+        }
+
+        // set up spellchecking
+        if ($builder->getUseSpellcheck()) {
+            $spellcheck = $query->getSpellcheck();
+            $spellcheck->setOptions($builder->getSpellcheckOptions());
         }
 
         // Set the boost fields
@@ -384,7 +405,8 @@ class SolrEngine extends Engine
             $query->setRows($builder->limit);
         }
 
-        return $this->client->select($query, $endpoint);
+        $this->lastSelectResult = $this->client->select($query, $endpoint);
+        return $this->lastSelectResult;
     }
 
     /**
@@ -450,5 +472,10 @@ class SolrEngine extends Engine
     public function escapeQueryAsPhrase(string $query): string
     {
         return $this->helper->escapePhrase($query);
+    }
+
+    public function getLastSelectResult(): ?\Solarium\QueryType\Select\Result\Result
+    {
+        return $this->lastSelectResult;
     }
 }

@@ -4,6 +4,7 @@ namespace Scout\Solr;
 
 use Closure;
 use Laravel\Scout\Builder as ScoutBuilder;
+use Scout\Solr\HasSolrResults;
 use Scout\Solr\Engines\SolrEngine;
 
 /**
@@ -66,6 +67,53 @@ class Builder extends ScoutBuilder
      * @var int
      */
     private $start = null;
+
+    /**
+     * Determine whether we want the spellcheck component to run
+     *
+     * @var boolean
+     */
+    private $useSpellcheck = false;
+
+    /**
+     * If the search returns a collation for spellcheck, automatically re-run it to extend the results
+     *
+     * @var boolean
+     */
+    private $doAutoSpellcheckSearch = false;
+
+    /**
+     * Options for the spellcheck component
+     *
+     * @var array
+     */
+    private $spellcheckOptions = [];
+
+    public function paginate($perPage = null, $pageName = 'page', $page = null)
+    {
+        $paginator = parent::paginate($perPage, $pageName, $page);
+        // be paranoid and ensure we have the methods we need
+        if (
+            method_exists($paginator, 'getCollection') &&
+            array_key_exists(HasSolrResults::class, class_uses($paginator->getCollection()))
+        ) {
+            $paginator->getCollection()->setResults($this->engine()->getLastSelectResult());
+        }
+        return $paginator;
+    }
+
+    public function get()
+    {
+        $models = parent::get();
+        // be paranoid and ensure we have the methods we need
+        if (
+            method_exists($models, 'getCollection') &&
+            array_key_exists(HasSolrResults::class, class_uses($models->getCollection()))
+        ) {
+            $models->getCollection()->setResults($this->engine()->getLastSelectResult());
+        }
+        return $models;
+    }
 
     /**
      * Add a filter query, uses the solarium placeholder syntax
@@ -234,6 +282,7 @@ class Builder extends ScoutBuilder
         } else {
             $this->useDismax();
         }
+        return $this;
     }
 
     /**
@@ -326,5 +375,56 @@ class Builder extends ScoutBuilder
     public function getStart(): ?int
     {
         return $this->start;
+    }
+
+    /**
+     * Enable the spellcheck component
+     *
+     * @param array $options Spellcheck options
+     * @return self
+     */
+    public function spellcheck($options = []): self
+    {
+        $this->useSpellcheck = true;
+        $this->spellcheckOptions = $options;
+        return $this;
+    }
+
+    /**
+     * Determine whether this search wants the spellcheck component
+     *
+     * @return boolean
+     */
+    public function getUseSpellcheck(): bool
+    {
+        return $this->useSpellcheck;
+    }
+
+    public function getSpellcheckOptions(): array
+    {
+        return $this->spellcheckOptions;
+    }
+
+    /**
+     * If enabled will automatically re-search the index for any collated searches returned by the spellcheck component
+     *
+     * @return self
+     */
+    public function autoSpellcheckSearch(): self
+    {
+        $this->doAutoSpellcheckSearch = true;
+        // force collation to make sure we get alternate results back
+        $this->spellcheckOptions['collate'] = true;
+        return $this;
+    }
+
+    /**
+     * Define if we want to perform an auto re-search
+     *
+     * @return boolean
+     */
+    public function getDoAutoSpellcheckSearch(): bool
+    {
+        return $this->doAutoSpellcheckSearch;
     }
 }
