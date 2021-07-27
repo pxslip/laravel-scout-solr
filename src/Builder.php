@@ -4,6 +4,7 @@ namespace Scout\Solr;
 
 use Closure;
 use Laravel\Scout\Builder as ScoutBuilder;
+use Scout\Solr\HasSolrResults;
 use Scout\Solr\Engines\SolrEngine;
 
 /**
@@ -87,6 +88,32 @@ class Builder extends ScoutBuilder
      * @var array
      */
     private $spellcheckOptions = [];
+
+    public function paginate($perPage = null, $pageName = 'page', $page = null)
+    {
+        $paginator = parent::paginate($perPage, $pageName, $page);
+        // be paranoid and ensure we have the methods we need
+        if (
+            method_exists($paginator, 'getCollection') &&
+            array_key_exists(HasSolrResults::class, class_uses($paginator->getCollection()))
+        ) {
+            $paginator->getCollection()->setResults($this->engine()->getLastSelectResult());
+        }
+        return $paginator;
+    }
+
+    public function get()
+    {
+        $models = parent::get();
+        // be paranoid and ensure we have the methods we need
+        if (
+            method_exists($models, 'getCollection') &&
+            array_key_exists(HasSolrResults::class, class_uses($models->getCollection()))
+        ) {
+            $models->getCollection()->setResults($this->engine()->getLastSelectResult());
+        }
+        return $models;
+    }
 
     /**
      * Add a filter query, uses the solarium placeholder syntax
@@ -255,6 +282,7 @@ class Builder extends ScoutBuilder
         } else {
             $this->useDismax();
         }
+        return $this;
     }
 
     /**

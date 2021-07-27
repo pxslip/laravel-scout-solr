@@ -4,13 +4,12 @@ namespace Scout\Solr\Engines;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Collection as SupportCollection;
 use Laravel\Scout\Builder as BaseBuilder;
 use Laravel\Scout\Engines\Engine;
 use Scout\Solr\Builder;
 use Scout\Solr\Searchable;
-use Scout\Solr\SolrCollection;
 use Solarium\Client as SolariumClient;
+use Solarium\Core\Query\Helper;
 
 class SolrEngine extends Engine
 {
@@ -25,6 +24,11 @@ class SolrEngine extends Engine
      */
     private $client;
 
+    /**
+     * Access to the query helper.
+     *
+     * @var Helper
+     */
     private $helper;
 
     /**
@@ -40,6 +44,13 @@ class SolrEngine extends Engine
      * @var string
      */
     private $metaKey = null;
+
+    /**
+     * Store the last result created allowing us to attach it to collection results.
+     *
+     * @var \Solarium\QueryType\Select\Result\Result
+     */
+    private $lastSelectResult;
 
     /**
      * Constructor takes an initialized Solarium client as its only parameter.
@@ -387,7 +398,8 @@ class SolrEngine extends Engine
             $query->setRows($builder->limit);
         }
 
-        return $this->client->select($query, $endpoint);
+        $this->lastSelectResult = $this->client->select($query, $endpoint);
+        return $this->lastSelectResult;
     }
 
     /**
@@ -453,5 +465,10 @@ class SolrEngine extends Engine
     public function escapeQueryAsPhrase(string $query): string
     {
         return $this->helper->escapePhrase($query);
+    }
+
+    public function getLastSelectResult(): ?\Solarium\QueryType\Select\Result\Result
+    {
+        return $this->lastSelectResult;
     }
 }
