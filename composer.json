@@ -16,9 +16,7 @@
   },
   "extra": {
     "laravel": {
-      "providers": [
-        "Scout\\Solr\\ScoutSolrServiceProvider"
-      ]
+      "providers": ["Scout\\Solr\\ScoutSolrServiceProvider"]
     }
   },
   "license": "MIT",
