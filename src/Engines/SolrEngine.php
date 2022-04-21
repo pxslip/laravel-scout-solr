@@ -13,7 +13,6 @@ use Solarium\Core\Query\Helper;
 
 class SolrEngine extends Engine
 {
-
     public const NESTED_QUERY = '_nested_';
     public const SIMPLE_QUERY = '_simple_';
 
@@ -321,11 +320,10 @@ class SolrEngine extends Engine
             $queryString = $builder->query;
         }
         $query = $this->client->createSelect();
-
-        if ($builder->isDismax()) {
-            $dismax = $query->getDisMax();
-        } elseif ($builder->isEDismax()) {
+        if ($builder->isEDismax()) {
             $dismax = $query->getEDisMax();
+        } elseif ($builder->isDismax()) {
+            $dismax = $query->getDisMax();
         }
 
         if (isset($dismax) && empty($queryString)) {
@@ -339,7 +337,7 @@ class SolrEngine extends Engine
         foreach ($builder->wheres as $where) {
             if ($where['type'] === static::NESTED_QUERY) {
                 $queryString = $this->compileNestedQuery($where);
-            } else if ($where['type'] === static::SIMPLE_QUERY) {
+            } elseif ($where['type'] === static::SIMPLE_QUERY) {
                 $queryString = $this->helper->assemble($where['query'], $where['bindings']);
             }
             if (!empty($filters) && $where['boolean'] === 'OR') {
@@ -373,7 +371,9 @@ class SolrEngine extends Engine
         }
         if (!empty($builder->facetPivots)) {
             foreach ($builder->facetPivots as $fields) {
-                $facetSet->createFacetPivot(implode('-', $fields))->addFields(implode(',', $fields));
+                $facetSet
+                    ->createFacetPivot(implode('-', $fields))
+                    ->addFields(implode(',', $fields));
             }
         }
 

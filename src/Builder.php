@@ -117,7 +117,7 @@ class Builder extends ScoutBuilder
 
     /**
      * Add a filter query, uses the solarium placeholder syntax
-     * 
+     *
      * @see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/
      *
      * @param string|Closure $query The query string
@@ -150,7 +150,7 @@ class Builder extends ScoutBuilder
 
     /**
      * Add a filter query separated by OR. Uses the solarium placeholder syntax
-     * 
+     *
      * @see https://solarium.readthedocs.io/en/stable/queries/query-helper/placeholders/
      *
      * @param string|Closure $query the name of the field to filter against
@@ -174,8 +174,13 @@ class Builder extends ScoutBuilder
      *
      * @return self          $this to allow for fluent queries
      */
-    public function whereRange(string $field, string $low, string $high, string $mode = 'L', string $boolean = 'AND')
-    {
+    public function whereRange(
+        string $field,
+        string $low,
+        string $high,
+        string $mode = 'L',
+        string $boolean = 'AND'
+    ) {
         $query = "{$field}:[%{$mode}1% TO %{$mode}2%]";
 
         return $this->where($query, [$low, $high], $boolean);
@@ -209,9 +214,7 @@ class Builder extends ScoutBuilder
             // we already have a facet query for this field, add another
             $this->facetQueries[$field][] = $query;
         } else {
-            $this->facetQueries[$field] = [
-                $query,
-            ];
+            $this->facetQueries[$field] = [$query];
         }
 
         return $this;
@@ -277,10 +280,12 @@ class Builder extends ScoutBuilder
      */
     private function selectQueryParser()
     {
-        if (strpos($this->query, '*') !== false) {
+        if (
+            $this->useDismax !== true &&
+            $this->useExtendedDismax !== true &&
+            strpos($this->query, '*') !== false
+        ) {
             $this->useEDismax();
-        } else {
-            $this->useDismax();
         }
         return $this;
     }
@@ -290,8 +295,7 @@ class Builder extends ScoutBuilder
      */
     public function getBoostsArray()
     {
-        return $this->getBoostsCollection()
-            ->toArray();
+        return $this->getBoostsCollection()->toArray();
     }
 
     /**
@@ -299,8 +303,7 @@ class Builder extends ScoutBuilder
      */
     public function getBoosts()
     {
-        return $this->getBoostsCollection()
-            ->implode(' ');
+        return $this->getBoostsCollection()->implode(' ');
     }
 
     /**
@@ -308,10 +311,9 @@ class Builder extends ScoutBuilder
      */
     public function getBoostsCollection()
     {
-        return collect($this->boostFields)
-            ->map(function ($boost, $field): string {
-                return "$field^$boost";
-            });
+        return collect($this->boostFields)->map(function ($boost, $field): string {
+            return "$field^$boost";
+        });
     }
 
     public function hasBoosts(): bool
