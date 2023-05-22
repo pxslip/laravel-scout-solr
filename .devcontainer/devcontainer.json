@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.194.0/containers/php
 {
-  "name": "PHP",
+  "name": "Solr Engine for Laravel Scout",
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
@@ -11,16 +11,20 @@
     }
   },
   // Set *default* container specific settings.json values on container create.
-  "settings": {
-    "php.validate.executablePath": "/usr/local/bin/php"
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "php.validate.executablePath": "/usr/local/bin/php"
+      },
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": [
+        "felixfbecker.php-debug",
+        "neilbrayfield.php-docblocker",
+        "bmewburn.vscode-intelephense-client",
+        "esbenp.prettier-vscode"
+      ]
+    }
   },
-  // Add the IDs of extensions you want installed when the container is created.
-  "extensions": [
-    "felixfbecker.php-debug",
-    "neilbrayfield.php-docblocker",
-    "bmewburn.vscode-intelephense-client",
-    "esbenp.prettier-vscode"
-  ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [8080],
   // Use 'postCreateCommand' to run commands after the container is created.
