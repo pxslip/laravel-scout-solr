@@ -405,6 +405,16 @@ class SolrEngine extends Engine
             $query->setRows($builder->limit);
         }
 
+        if ($builder->getDebug()) {
+            $query->getDebug();
+        }
+
+        if (count($builder->getQueryParams()) > 0) {
+            foreach ($builder->getQueryParams() as $key => $value) {
+                $query->addParam($key, $value);
+            }
+        }
+
         $this->lastSelectResult = $this->client->select($query, $endpoint);
         return $this->lastSelectResult;
     }

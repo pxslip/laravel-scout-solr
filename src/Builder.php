@@ -89,6 +89,19 @@ class Builder extends ScoutBuilder
      */
     private $spellcheckOptions = [];
 
+    /**
+     * Make it possible to enable/disable the debug mode from solr
+     * @var bool
+     */
+    private $debug = false;
+
+    /**
+     * Arbitrary query params to add to the request
+     *
+     * @var array
+     */
+    private $queryParams = [];
+
     public function paginate($perPage = null, $pageName = 'page', $page = null)
     {
         $paginator = parent::paginate($perPage, $pageName, $page);
@@ -267,7 +280,7 @@ class Builder extends ScoutBuilder
      * @param string|int $boost
      * @return $this
      */
-    public function boostField($field, $boost)
+    public function boostField($field, $boost = "")
     {
         $this->selectQueryParser();
         $this->boostFields[$field] = $boost;
@@ -312,7 +325,7 @@ class Builder extends ScoutBuilder
     public function getBoostsCollection()
     {
         return collect($this->boostFields)->map(function ($boost, $field): string {
-            return "$field^$boost";
+            return !empty($boost) && $boost !== 1 ? "$field^$boost" : $field;
         });
     }
 
@@ -428,5 +441,57 @@ class Builder extends ScoutBuilder
     public function getDoAutoSpellcheckSearch(): bool
     {
         return $this->doAutoSpellcheckSearch;
+    }
+
+    /**
+     * Enable or disable the debug component on the request
+     *
+     * @param boolean $value
+     * @return self
+     */
+    public function debug($value = true): self
+    {
+        $this->debug = $value;
+        return $this;
+    }
+
+    /**
+     * Get whether the debug component is enabled for this request
+     *
+     * @return boolean
+     */
+    public function getDebug(): bool
+    {
+        return $this->debug;
+    }
+
+    /**
+     * Add an arbitrary query param to the eventual request
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return self
+     */
+    public function queryParam(string $key, $value): self
+    {
+        $this->queryParams[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Sets the query params, overwrites any prior value
+     *
+     * @param array $params
+     * @return self
+     */
+    public function setQueryParams(array $params): self
+    {
+        $this->queryParams = $params;
+        return $this;
+    }
+
+    public function getQueryParams(): array
+    {
+        return $this->queryParams;
     }
 }
